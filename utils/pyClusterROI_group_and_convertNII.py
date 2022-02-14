@@ -21,7 +21,7 @@ maskname = os.path.join(path_masks,mask+'_mask.nii.gz')
 
 # for both group-mean and 2-level clustering we need to know the number of
 # nonzero voxels in in the mask
-NUM_CLUSTERS = [int(round(Nclust*0.95)), Nclust, int(round(Nclust*1.05))]
+NUM_CLUSTERS = [int(round(Nclust*0.90)), Nclust, int(round(Nclust*1.10))]
 mask_voxels=(nb.load(maskname).get_data().flatten()>0).sum()
 
 # now group mean cluster scorr files

@@ -13,11 +13,11 @@ do
     dim3_img=$(fslval /app/brain_templates/lobule_masks/${lob}_mask.nii.gz dim1)
     mean_img=$(fslstats /app/brain_templates/lobule_masks/${lob}_mask.nii.gz -m)
     Nclust=$(echo "${mean_img} * ${dim1_img} * ${dim2_img} * ${dim3_img} / 20" | bc -l) 
-
-    # for p in $(cat /project/participants_list.txt)
-    # do
-    #     python /app/utils/pyClusterROI_individual.py $p $lob
-    # done
+    
+    for p in $(cat /project/participants_list.txt)
+    do
+        python /app/utils/pyClusterROI_individual.py $p $lob
+    done
 
     python /app/utils/pyClusterROI_group_and_convertNII.py /project/participants_list.txt $lob $Nclust
 done
