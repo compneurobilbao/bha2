@@ -8,7 +8,6 @@ from make_image_from_bin import *
 from make_image_from_bin_renum import *
 from time import time
 
-path_masks = "/app/brain_templates/lobule_masks"
 path_fmriproc = "/project"
 path_outmaps = "/project/Craddock_partition"
 
@@ -17,7 +16,7 @@ mask = sys.argv[2]
 Nclust = int(round(float(sys.argv[3])))
 
 # the name of the maskfile that we will be using
-maskname = os.path.join(path_masks,mask+'_mask.nii.gz')
+maskname = os.path.join(path_outmaps,mask,mask+'_mask.nii.gz')
 
 # for both group-mean and 2-level clustering we need to know the number of
 # nonzero voxels in in the mask
