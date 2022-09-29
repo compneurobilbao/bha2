@@ -43,8 +43,6 @@ RUN export ND_ENTRYPOINT="/neurodocker/startup.sh" \
 
 ENTRYPOINT ["/neurodocker/startup.sh"]
 
-ENV PATH="/opt/afni-latest:$PATH" \
-    AFNI_PLUGINPATH="/opt/afni-latest"
 RUN apt-get update -qq \
     && apt-get install -y -q --no-install-recommends \
            ed \
@@ -56,7 +54,6 @@ RUN apt-get update -qq \
            libjpeg62 \
            libxm4 \
            netpbm \
-           tcsh \
            xfonts-base \
            xvfb \
     && apt-get clean \
@@ -74,18 +71,7 @@ RUN apt-get update -qq \
     && if [ -n "$gsl2_path" ]; then \
          ln -sfv "$gsl2_path" "$(dirname $gsl2_path)/libgsl.so.0"; \
     fi \
-    && ldconfig \
-    && echo "Downloading AFNI ..." \
-    && mkdir -p /opt/afni-latest \
-    && curl -fsSL --retry 5 https://afni.nimh.nih.gov/pub/dist/tgz/linux_openmp_64.tgz \
-    | tar -xz -C /opt/afni-latest --strip-components 1
-
-ENV ANTSPATH="/opt/ants-2.3.1" \
-    PATH="/opt/ants-2.3.1:$PATH"
-RUN echo "Downloading ANTs ..." \
-    && mkdir -p /opt/ants-2.3.1 \
-    && curl -fsSL --retry 5 https://dl.dropbox.com/s/1xfhydsf4t4qoxg/ants-Linux-centos6_x86_64-v2.3.1.tar.gz \
-    | tar -xz -C /opt/ants-2.3.1 --strip-components 1
+    && ldconfig
 
 ENV FSLDIR="/opt/fsl-6.0.1" \
     PATH="/opt/fsl-6.0.1/bin:$PATH" \
@@ -134,19 +120,6 @@ RUN apt-get update -qq \
     && echo "Removing bundled with FSLeyes libz likely incompatible with the one from OS" \
     && rm -f /opt/fsl-6.0.1/bin/FSLeyes/libz.so.1
 
-ENV PATH="/opt/mrtrix3-3.0_RC3/bin:$PATH"
-RUN echo "Downloading MRtrix3 ..." \
-    && mkdir -p /opt/mrtrix3-3.0_RC3 \
-    && curl -fsSL --retry 5 https://dl.dropbox.com/s/2oh339ehcxcf8xf/mrtrix3-3.0_RC3-Linux-centos6.9-x86_64.tar.gz \
-    | tar -xz -C /opt/mrtrix3-3.0_RC3 --strip-components 1
-
-ENV C3DPATH="/opt/convert3d-1.0.0" \
-    PATH="/opt/convert3d-1.0.0/bin:$PATH"
-RUN echo "Downloading Convert3D ..." \
-    && mkdir -p /opt/convert3d-1.0.0 \
-    && curl -fsSL --retry 5 https://sourceforge.net/projects/c3d/files/c3d/1.0.0/c3d-1.0.0-Linux-x86_64.tar.gz/download \
-    | tar -xz -C /opt/convert3d-1.0.0 --strip-components 1
-
 RUN apt-get update -qq \
     && apt-get install -y -q --no-install-recommends \
            gcc \
@@ -168,21 +141,7 @@ RUN export PATH="/opt/miniconda-latest/bin:$PATH" \
     && conda config --system --set auto_update_conda false \
     && conda config --system --set show_channel_urls true \
     && sync && conda clean -y --all && sync \
-    && conda create -y -q --name ICAaroma \
-    && conda install -y -q --name ICAaroma \
-           "python=2.7" \
-    && sync && conda clean -y --all && sync \
-    && bash -c "source activate ICAaroma \
-    &&   pip install --no-cache-dir  \
-             "future" \
-             "matplotlib==2.2" \
-             "numpy==1.14" \
-             "pandas==0.23" \
-             "seaborn==0.9.0"" \
-    && rm -rf ~/.cache/pip/* \
-    && sync
-
-RUN conda create -y -q --name neuro \
+    && conda create -y -q --name neuro \
     && conda install -y -q --name neuro \
            "python=3.8" \
            "numpy" \
@@ -190,6 +149,8 @@ RUN conda create -y -q --name neuro \
            "matplotlib" \
            "scikit-learn" \
            "seaborn" \
+           "scipy" \
+           "numba" \
     && sync && conda clean -y --all && sync \
     && bash -c "source activate neuro \
     &&   pip install --no-cache-dir  \
@@ -207,37 +168,9 @@ RUN echo '{ \
     \n      "debian:stretch" \
     \n    ], \
     \n    [ \
-    \n      "afni", \
-    \n      { \
-    \n        "version": "latest", \
-    \n        "method": "binaries" \
-    \n      } \
-    \n    ], \
-    \n    [ \
-    \n      "ants", \
-    \n      { \
-    \n        "version": "2.3.1", \
-    \n        "method": "binaries" \
-    \n      } \
-    \n    ], \
-    \n    [ \
     \n      "fsl", \
     \n      { \
     \n        "version": "6.0.1", \
-    \n        "method": "binaries" \
-    \n      } \
-    \n    ], \
-    \n    [ \
-    \n      "mrtrix3", \
-    \n      { \
-    \n        "version": "3.0_RC3", \
-    \n        "method": "binaries" \
-    \n      } \
-    \n    ], \
-    \n    [ \
-    \n      "convert3d", \
-    \n      { \
-    \n        "version": "1.0.0", \
     \n        "method": "binaries" \
     \n      } \
     \n    ], \
@@ -248,22 +181,6 @@ RUN echo '{ \
     \n        "libc6-dev", \
     \n        "libopenblas-base" \
     \n      ] \
-    \n    ], \
-    \n    [ \
-    \n      "miniconda", \
-    \n      { \
-    \n        "create_env": "ICAaroma", \
-    \n        "conda_install": [ \
-    \n          "python=2.7" \
-    \n        ], \
-    \n        "pip_install": [ \
-    \n          "future", \
-    \n          "matplotlib==2.2", \
-    \n          "numpy==1.14", \
-    \n          "pandas==0.23", \
-    \n          "seaborn==0.9.0" \
-    \n        ] \
-    \n      } \
     \n    ], \
     \n    [ \
     \n      "miniconda", \

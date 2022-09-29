@@ -19,8 +19,7 @@ n_s=$(wc -l /project/participants_list.txt | awk '{ print $1 }')
 fslmaths /project/population_rsfmri_proportion.nii.gz -div $n_s -thr 0.5 -bin \
     /project/population_rsfmri_mask.nii.gz
 
-#Frontal Parietal Occipital
-for lob in  Temporal Insula Subcortical Cerebellum Brain_stem
+for lob in Frontal Parietal Occipital Temporal Insula Subcortical Cerebellum Brain_stem
 do
     mkdir -p /project/Craddock_partition/${lob}
     
@@ -30,13 +29,17 @@ do
     dim2_img=$(fslval /project/Craddock_partition/${lob}/${lob}_mask.nii.gz dim2)
     dim3_img=$(fslval /project/Craddock_partition/${lob}/${lob}_mask.nii.gz dim3)
     mean_img=$(fslstats /project/Craddock_partition/${lob}/${lob}_mask.nii.gz -m)
-    Nclust=$(echo "${mean_img} * ${dim1_img} * ${dim2_img} * ${dim3_img} / 15" | bc -l) 
+    #dim_caler is a factor to scale the dimension of the mask to get the aproximated desired
+    #size of the parcels. Here as we used 2x2x2mm voxels, and we want to have parcels of 75 voxels,
+    #dim_scaler is 
+    dim_scaler=75
+    Nclust=$(echo "${mean_img} * ${dim1_img} * ${dim2_img} * ${dim3_img} / ${dim_scaler}" | bc -l) 
     
     for p in $(cat /project/participants_list.txt)
     do
         mkdir -p /project/Craddock_partition/${lob}/${p}
-        python /app/utils/pyClusterROI_individual.py $p $lob
+        python /app/utils/craddockParcel/pyClusterROI_individual.py $p $lob
     done
 
-    python /app/utils/pyClusterROI_group_and_convertNII.py /project/participants_list.txt $lob $Nclust
+    python /app/utils/craddockParcel/pyClusterROI_group_and_convertNII.py /project/participants_list.txt $lob $Nclust
 done
