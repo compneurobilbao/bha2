@@ -1,0 +1,13 @@
+name: neurospace
+
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+  - python==3.9
+  - pandas==1.4
+  - numpy==1.21
+  - scikit-learn==0.24
+  - nipype==1.8
+  - ipykernel==6.16
