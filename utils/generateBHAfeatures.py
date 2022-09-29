@@ -1,7 +1,12 @@
+"""
+Functions for calculate connectivity features based on dedrogram tree
+"""
+
 import numpy as np
 import pandas as pd
 from scipy.cluster.hierarchy import linkage, fcluster
-from scipy.spatial.distance import pdist, squareform
+from scipy.spatial.distance import pdist
+import json
 
 def connectome_average(slist):
     sc_all = []
@@ -30,47 +35,43 @@ def mod_similarity(fc, sc, T):
     sc_mod_m = []
 
     for i in range(1, np.max(T)+1):
-        roisInClust = np.where(T == i)[0]
-        fcm_mod = fc[roisInClust,:]
-        fcm_mod = fcm_mod[:,roisInClust]
-        scm_mod = sc[roisInClust,:]
-        scm_mod = scm_mod[:,roisInClust]
+        rois_in_clust = np.where(T == i)[0]
+        fcm_mod = fc[rois_in_clust,:]
+        fcm_mod = fcm_mod[:,rois_in_clust]
+        scm_mod = sc[rois_in_clust,:]
+        scm_mod = scm_mod[:,rois_in_clust]
         fc_mod_m.append(fcm_mod.mean())
         sc_mod_m.append(scm_mod.mean())
-    
+
     return np.sqrt((np.multiply(fc_mod_m, sc_mod_m)).mean())
-    
+
 def calc_connfeat(fc, sc, T, lvl):
     features = np.array([])
     feat_names = np.array([])
-    feat_desc = []
+    feat_dict = {}
 
     for i in range(1, np.max(T)+1):
-        roisInClust = np.where(T == i)[0]
-        extRois = np.ones(fc.shape[0], dtype=bool)
-        extRois[roisInClust] = False
-        if len(roisInClust) > 1:
+        rois_in_clust = np.where(T == i)[0]
+        ext_rois = np.setdiff1d(np.array([i for i in range(len(T))]), rois_in_clust)
+
+        if len(rois_in_clust) > 1:
             desc = ('lvl_' + str(lvl) + '_mod_' + str(i))
-            feat_desc.append([desc, roisInClust])
-            
-            fcm_int = fc[roisInClust,:]
-            fcm_int = fcm_int[:,roisInClust]
-            scm_int = sc[roisInClust,:]
-            scm_int = scm_int[:,roisInClust]
-            fcm_ext = fc[roisInClust,:]
-            fcm_ext = fcm_ext[:,extRois]
-            scm_ext = sc[roisInClust,:]
-            scm_ext = scm_ext[:,extRois]
+            feat_dict[desc] = list(rois_in_clust)
 
-            features = np.concatenate((features, 
-            np.array([fcm_int.mean(), fcm_ext.mean(), scm_int.mean(), scm_ext.mean()])))
-            feat_names = np.concatenate((feat_names, 
-                np.array(['FCINT_' + desc, 'FCEXT_' + desc, 'SCINT_' + desc, 'SCEXT_' + desc]))) 
+            fc_int = fc.iloc[rois_in_clust][rois_in_clust].to_numpy().mean()
+            fc_out = fc.iloc[rois_in_clust][ext_rois].to_numpy().mean()
+            sc_int = (sc.iloc[rois_in_clust][rois_in_clust].to_numpy().sum())/len(rois_in_clust)
+            sc_out = (sc.iloc[rois_in_clust][ext_rois].to_numpy().sum())/len(rois_in_clust)
+
+            features = np.concatenate((features,
+            np.array([fc_int, fc_out, sc_int, sc_out])))
+            feat_names = np.concatenate((feat_names,
+                np.array(['FCINT_' + desc, 'FCEXT_' + desc, 'SCINT_' + desc, 'SCEXT_' + desc])))
 
 
-    return features, feat_names, feat_desc
+    return features, feat_names, feat_dict
 
-def generate_features(slist, g, scm, fcm):
+def generate_population_features(slist, g, scm, fcm):
     cc = np.multiply(((g*abs(fcm)) + ((1-g) * scm)), np.sign(fcm))
     cc_dist = pdist(cc, 'cosine')
     W = cc_dist/max(cc_dist)
@@ -78,7 +79,7 @@ def generate_features(slist, g, scm, fcm):
 
     Xfeatures = slist.reshape(len(slist), 1)
     Xnames = np.array(['label'])
-    Xdesc = []
+    Xdesc_dict = {}
     for numClust in range(10,20,1):
         T = fcluster(Z, numClust, criterion='maxclust')
         pfeatures = []
@@ -88,15 +89,15 @@ def generate_features(slist, g, scm, fcm):
             sc = np.array(pd.read_csv('sc_matrices/' + sub + '_anat_probabilistic_connectome.csv', delimiter=' ', header=None))
             fc = np.corrcoef(np.transpose(np.genfromtxt('timeseries/ts_' + sub + '.txt')))
             scmod = np.log10(sc+1)
-            subfeatures, subfeat_names, feat_desc = calc_connfeat(fc, scmod/scmod.max(), T, numClust)
+            subfeatures, subfeat_names, feat_dict = calc_connfeat(fc, scmod/scmod.max(), T, numClust)
             pfeatures.append(subfeatures)
-                        
+
         Xfeatures = np.hstack((Xfeatures, np.array(pfeatures)))
         Xnames = np.hstack((Xnames, np.array(subfeat_names)))
-        Xdesc.append(feat_desc)
-                
-    
+        Xdesc_dict.update(feat_dict)
+
+
     Xdf = pd.DataFrame(Xfeatures)
     Xdf.columns = Xnames
     Xdf = Xdf.loc[:,~Xdf.apply(lambda x: x.duplicated(),axis=1).all()].copy()
-    return Xdf, Xdesc
+    return Xdf, Xdesc_dict
