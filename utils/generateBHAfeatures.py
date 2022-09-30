@@ -6,7 +6,6 @@ import numpy as np
 import pandas as pd
 from scipy.cluster.hierarchy import linkage, fcluster
 from scipy.spatial.distance import pdist
-import json
 
 def connectome_average(slist):
     sc_all = []
@@ -18,7 +17,7 @@ def connectome_average(slist):
         scmod = np.log10(sc+1)
         fc_all.append(fc)
         sc_all.append(scmod/scmod.max())
-    return sc_all, fc_all
+    return fc_all, sc_all
 
 def modularity(A, T):
     m = np.sum(A)/2
@@ -36,12 +35,8 @@ def mod_similarity(fc, sc, T):
 
     for i in range(1, np.max(T)+1):
         rois_in_clust = np.where(T == i)[0]
-        fcm_mod = fc[rois_in_clust,:]
-        fcm_mod = fcm_mod[:,rois_in_clust]
-        scm_mod = sc[rois_in_clust,:]
-        scm_mod = scm_mod[:,rois_in_clust]
-        fc_mod_m.append(fcm_mod.mean())
-        sc_mod_m.append(scm_mod.mean())
+        fc_mod_m.append(fc.iloc[rois_in_clust][rois_in_clust].to_numpy().mean())
+        sc_mod_m.append(sc.iloc[rois_in_clust][rois_in_clust].to_numpy().mean())
 
     return np.sqrt((np.multiply(fc_mod_m, sc_mod_m)).mean())
 
@@ -71,33 +66,33 @@ def calc_connfeat(fc, sc, T, lvl):
 
     return features, feat_names, feat_dict
 
-def generate_population_features(slist, g, scm, fcm):
+def generate_population_features(slist, g, num_clust_init, num_clust_end, scm, fcm):
     cc = np.multiply(((g*abs(fcm)) + ((1-g) * scm)), np.sign(fcm))
     cc_dist = pdist(cc, 'cosine')
     W = cc_dist/max(cc_dist)
     Z = linkage(W, 'weighted')
 
-    Xfeatures = slist.reshape(len(slist), 1)
-    Xnames = np.array(['label'])
-    Xdesc_dict = {}
-    for numClust in range(10,20,1):
-        T = fcluster(Z, numClust, criterion='maxclust')
+    X_features = slist.reshape(len(slist), 1)
+    X_names = np.array(['label'])
+    X_desc_dict = {}
+    for num_clust in range(num_clust_init,num_clust_end+1,1):
+        T = fcluster(Z, num_clust, criterion='maxclust')
         pfeatures = []
 
         for i, sub in enumerate(slist):
-            print('gamma = ' + str(g) + ', lvl = ' + str(numClust) + ', snumber = ' + str(i))
+            print('gamma = ' + str(g) + ', lvl = ' + str(num_clust) + ', snumber = ' + str(i))
             sc = np.array(pd.read_csv('sc_matrices/' + sub + '_anat_probabilistic_connectome.csv', delimiter=' ', header=None))
             fc = np.corrcoef(np.transpose(np.genfromtxt('timeseries/ts_' + sub + '.txt')))
             scmod = np.log10(sc+1)
-            subfeatures, subfeat_names, feat_dict = calc_connfeat(fc, scmod/scmod.max(), T, numClust)
+            subfeatures, subfeat_names, feat_dict = calc_connfeat(fc, scmod/scmod.max(), T, num_clust)
             pfeatures.append(subfeatures)
 
-        Xfeatures = np.hstack((Xfeatures, np.array(pfeatures)))
-        Xnames = np.hstack((Xnames, np.array(subfeat_names)))
-        Xdesc_dict.update(feat_dict)
+        X_features = np.hstack((X_features, np.array(pfeatures)))
+        X_names = np.hstack((X_names, np.array(subfeat_names)))
+        X_desc_dict.update(feat_dict)
 
 
-    Xdf = pd.DataFrame(Xfeatures)
-    Xdf.columns = Xnames
+    Xdf = pd.DataFrame(X_features)
+    Xdf.columns = X_names
     Xdf = Xdf.loc[:,~Xdf.apply(lambda x: x.duplicated(),axis=1).all()].copy()
-    return Xdf, Xdesc_dict
+    return Xdf, X_desc_dict
