@@ -1,16 +1,11 @@
-import pandas as pd
 import numpy as np
+import scipy.sparse
 import glob
 
 
 def load_data(path):
     files = glob.glob(path)
     matrices = np.array(
-        [
-            pd.read_csv(
-                f, header=None, delimiter=" ", dtype=np.float16, engine="c"
-            ).to_numpy(dtype=np.float16)
-            for f in sorted(files)
-        ]
+        [scipy.sparse.load_npz(f).toarray(dtype=np.float16) for f in sorted(files)]
     )
     return matrices
