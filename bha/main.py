@@ -2,8 +2,7 @@
 Main code for BHA 2.0 project
 """
 
-from utils.generateBHAfeatures import connectome_average
-from ..utils.generateBehaviouralComposite import *
+from tree_features import connectome_average, generate_population_features
 import json
 
 subject_list = '/project/subjects.txt'
