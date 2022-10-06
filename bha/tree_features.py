@@ -41,7 +41,8 @@ def level_dictionary(T):
 
 def level_connectivity(fc, sc, T):
     lvl = T.max()
-    level_features = pd.DataFrame()
+    level_features = np.array([])
+    level_features_names = np.array([])
 
     for i in range(1, np.max(T) + 1):
         rois_in_clust = np.where(T == i)[0]
@@ -50,38 +51,44 @@ def level_connectivity(fc, sc, T):
         if len(rois_in_clust) > 1:
             desc = "lvl_" + str(lvl) + "_mod_" + str(i)
 
-            fc_int = fc.iloc[rois_in_clust][rois_in_clust].to_numpy().mean(dtype=float)
-            fc_out = fc.iloc[rois_in_clust][ext_rois].to_numpy().mean(dtype=float)
-            sc_int = (
-                sc.iloc[rois_in_clust][rois_in_clust].to_numpy().sum(dtype=float)
-            ) / len(rois_in_clust)
-            sc_out = (
-                sc.iloc[rois_in_clust][ext_rois].to_numpy().sum(dtype=float)
-            ) / len(rois_in_clust)
-
-            features = pd.DataFrame(
-                {
-                    "FCINT_" + desc: fc_int,
-                    "FCEXT_" + desc: fc_out,
-                    "SCINT_" + desc: sc_int,
-                    "SCEXT_" + desc: sc_out,
-                },
-                index=[0],
+            fc_int = fc[rois_in_clust, :][:, rois_in_clust].mean(dtype=float)
+            fc_out = fc[rois_in_clust[:, None], ext_rois].mean(dtype=float)
+            sc_int = (sc[rois_in_clust, :][:, rois_in_clust].sum(dtype=float)) / len(
+                rois_in_clust
+            )
+            sc_out = (sc[rois_in_clust[:, None], ext_rois].sum(dtype=float)) / len(
+                rois_in_clust
+            )
+            level_features = np.hstack(
+                [level_features, np.array([fc_int, fc_out, sc_int, sc_out])]
+            )
+            level_features_names = np.hstack(
+                [
+                    level_features_names,
+                    np.array(
+                        [
+                            "FCINT_" + desc,
+                            "FCOUT_" + desc,
+                            "SCINT_" + desc,
+                            "SCOUT_" + desc,
+                        ]
+                    ),
+                ],
             )
 
-            level_features = pd.concat([level_features, features], axis=1)
-
-    return level_features
+    return level_features, level_features_names
 
 
 def tree_connectivity(init_level, end_level, W, sc, fc):
-    t_features = pd.DataFrame()
+    t_features = np.array([])
+    t_features_names = np.array([])
     for i in range(init_level, end_level + 1):
         T = tree_modules(W, i)
-        l_features = level_connectivity(fc, sc, T)
-        t_features = pd.concat([t_features, l_features], axis=1)
+        l_features, l_names = level_connectivity(fc, sc, T)
+        t_features = np.hstack([t_features, l_features])
+        t_features_names = np.hstack([t_features_names, l_names])
 
-    return t_features
+    return t_features, t_features_names
 
 
 def tree_dictionary(init_level, end_level, W):
