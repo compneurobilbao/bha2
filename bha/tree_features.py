@@ -2,10 +2,14 @@
 Functions for calculate connectivity features based on dedrogram tree
 """
 
+import os
 import numpy as np
 import pandas as pd
 from scipy.cluster.hierarchy import linkage, fcluster
 from scipy.spatial.distance import pdist
+import nibabel as nib
+import json
+from numba import njit, jit, prange
 
 
 def connectome_average(fc_all, sc_all):
@@ -97,3 +101,9 @@ def tree_dictionary(init_level, end_level, W):
         T = tree_modules(W, i)
         t_dict.update(level_dictionary(T))
     return t_dict
+
+
+def get_module_img(atlas, rois, value=1):
+    atlas_data = atlas.get_fdata()
+    module_img = np.where(atlas_data == (np.array(rois) + 1), value, 0).sum(axis=3)
+    return module_img
