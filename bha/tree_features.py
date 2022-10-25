@@ -43,6 +43,49 @@ def level_dictionary(T):
     return l_dict
 
 
+def get_module_matrix(matrix, rois):
+    module_matrix = matrix[rois, :][:, rois]
+    return module_matrix
+
+
+def threshold_based_similarity(fcm, scm, tree):
+
+    module_sim = []
+    module_thr = []
+    for levels in tree:
+        rois = tree[levels]
+        if len(rois) > 1:
+            mod_fc = get_module_matrix(fcm, rois)
+            mod_sc = get_module_matrix(scm, rois)
+            similarities = []
+            tresholds = []
+            for thr_a in np.arange(0, 1, 0.1):
+                for thr_b in np.arange(0, 1, 0.1):
+                    thr_fc = np.where(mod_fc > thr_a, 1, 0)
+                    thr_sc = np.where(mod_sc > thr_b, 1, 0)
+                    if (thr_fc.sum() + thr_sc.sum()) != 0:
+                        thr_sim = (
+                            2
+                            * np.multiply(thr_fc, thr_sc).sum()
+                            / (thr_fc.sum() + thr_sc.sum())
+                        )
+                        similarities.append(thr_sim)
+                        tresholds.append(np.array([thr_a, thr_b]))
+            module_sim.append(np.array(similarities).max())
+            module_thr.append(tresholds[np.array(similarities).argmax()])
+    return module_sim, module_thr
+
+
+def modularity(A, T):
+    N = len(T)
+    K = np.array(A.sum(axis=0).reshape(1, -1), dtype=np.float64)
+    m = K.sum()
+    B = A - (K.T * K) / m
+    s = np.array([T for i in range(N)], dtype=np.float64)
+    Q = B[np.where((s.T - s) == 0)].sum() / m
+    return Q
+
+
 def level_connectivity(fc, sc, T):
     lvl = T.max()
     level_features = np.array([])
