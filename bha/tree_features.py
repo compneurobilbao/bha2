@@ -51,7 +51,7 @@ def get_module_matrix(matrix, rois):
 def threshold_based_similarity(fcm, scm, tree):
 
     module_sim = []
-    module_thr = []
+    module_thr = {}
     for levels in tree:
         rois = tree[levels]
         if len(rois) > 1:
@@ -61,7 +61,7 @@ def threshold_based_similarity(fcm, scm, tree):
             tresholds = []
             for thr_a in np.arange(0, 1, 0.1):
                 for thr_b in np.arange(0, 1, 0.1):
-                    thr_fc = np.where(mod_fc > thr_a, 1, 0)
+                    thr_fc = np.where(abs(mod_fc) > thr_a, 1, 0)
                     thr_sc = np.where(mod_sc > thr_b, 1, 0)
                     if (thr_fc.sum() + thr_sc.sum()) != 0:
                         thr_sim = (
@@ -72,7 +72,7 @@ def threshold_based_similarity(fcm, scm, tree):
                         similarities.append(thr_sim)
                         tresholds.append(np.array([thr_a, thr_b]))
             module_sim.append(np.array(similarities).max())
-            module_thr.append(tresholds[np.array(similarities).argmax()])
+            module_thr[levels] = tresholds[np.array(similarities).argmax()]
     return module_sim, module_thr
 
 
@@ -84,6 +84,19 @@ def modularity(A, T):
     s = np.array([T for i in range(N)], dtype=np.float64)
     Q = B[np.where((s.T - s) == 0)].sum() / m
     return Q
+
+
+def cross_modularity(fc, sc, g, l):
+    W = matrix_fusion(g, fc, sc)
+    T = tree_modules(W, l)
+    level = level_dictionary(T)
+
+    sims, thrs = threshold_based_similarity(fc, sc, level)
+    mod_sc = modularity(sc, T)
+    mod_fc = modularity(fc, T)
+    crossmod = pow((np.array(sims).mean() * mod_sc * mod_fc), (1 / 3))
+
+    return crossmod, thrs
 
 
 def level_connectivity(fc, sc, T):
@@ -149,4 +162,15 @@ def tree_dictionary(init_level, end_level, W):
 def get_module_img(atlas, rois, value=1):
     atlas_data = atlas.get_fdata()
     module_img = np.where(atlas_data == (np.array(rois) + 1), value, 0).sum(axis=3)
-    return module_img
+    img = nib.Nifti1Image(module_img, affine=atlas.affine)
+    return img
+
+
+def add_gamma_to_lvl_dict(dict, g):
+    oldkeys = list(dict.keys())
+    newkeys = [
+        s.replace("lvl_", "gamma_" + str(round(g, 2)) + "_lvl_") for s in oldkeys
+    ]
+    vals = list(dict.values())
+    newdictionary = {k: v for k, v in zip(newkeys, vals)}
+    return newdictionary

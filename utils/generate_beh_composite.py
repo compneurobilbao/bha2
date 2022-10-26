@@ -13,7 +13,7 @@ test_name = sys.argv[2]
 
 
 behavioural_path = "/home/antoniojm/Documents/projects/BHA_5G/lemon/behaviour"
-s_list_path = "/home/antoniojm/Documents/projects/BHA_5G/lemon/subjects.txt"
+s_list_path = "/home/antoniojm/Documents/projects/BHA_5G/lemon/subjects_blood.txt"
 
 battery_path = os.path.join(behavioural_path, behavioural_type, test_name)
 df = pd.read_csv(battery_path + "/" + test_name + ".csv")
@@ -27,6 +27,7 @@ inverse_columns = battery_corrections["tasks_to_invert"]
 
 s_list = np.genfromtxt(s_list_path, dtype="str")
 df_young = df_sorted.loc[df["labels"].isin(s_list)]
+print(np.where(pd.isnull(df_young)))
 columns_to_remove = np.concatenate((["labels"], columns_no_score))
 df_to_impute = df_young.drop(columns=columns_to_remove)
 np.where(pd.isnull(df_to_impute))
