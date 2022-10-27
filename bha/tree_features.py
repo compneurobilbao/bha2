@@ -99,64 +99,44 @@ def cross_modularity(fc, sc, g, l):
     return crossmod, thrs
 
 
-def level_connectivity(fc, sc, T):
-    lvl = T.max()
-    level_features = np.array([])
-    level_features_names = np.array([])
-
-    for i in range(1, np.max(T) + 1):
-        rois_in_clust = np.where(T == i)[0]
-        ext_rois = np.setdiff1d(np.array([i for i in range(len(T))]), rois_in_clust)
-
-        if len(rois_in_clust) > 1:
-            desc = "lvl_" + str(lvl) + "_mod_" + str(i)
-
-            fc_int = fc[rois_in_clust, :][:, rois_in_clust].mean(dtype=float)
-            fc_out = fc[rois_in_clust[:, None], ext_rois].mean(dtype=float)
-            sc_int = (sc[rois_in_clust, :][:, rois_in_clust].sum(dtype=float)) / len(
-                rois_in_clust
-            )
-            sc_out = (sc[rois_in_clust[:, None], ext_rois].sum(dtype=float)) / len(
-                rois_in_clust
-            )
-            level_features = np.hstack(
-                [level_features, np.array([fc_int, fc_out, sc_int, sc_out])]
-            )
-            level_features_names = np.hstack(
-                [
-                    level_features_names,
-                    np.array(
-                        [
-                            "FCINT_" + desc,
-                            "FCOUT_" + desc,
-                            "SCINT_" + desc,
-                            "SCOUT_" + desc,
-                        ]
-                    ),
-                ],
-            )
-
-    return level_features, level_features_names
-
-
-def tree_connectivity(init_level, end_level, W, sc, fc):
-    t_features = np.array([])
-    t_features_names = np.array([])
-    for i in range(init_level, end_level + 1):
-        T = tree_modules(W, i)
-        l_features, l_names = level_connectivity(fc, sc, T)
-        t_features = np.hstack([t_features, l_features])
-        t_features_names = np.hstack([t_features_names, l_names])
-
-    return t_features, t_features_names
-
-
 def tree_dictionary(init_level, end_level, W):
     t_dict = {}
     for i in range(init_level, end_level + 1):
         T = tree_modules(W, i)
-        t_dict.update(level_dictionary(T))
+        level_dict = level_dictionary(T)
+        for mod in level_dict:
+            rois = level_dict[mod]
+            if rois not in list(t_dict.values()):
+                t_dict.update({mod: rois})
     return t_dict
+
+
+def module_connectivity(rois, label, sc, fc):
+    int_rois = np.array(rois)
+    ext_rois = np.setdiff1d(np.array([i for i in range(len(sc))]), int_rois)
+
+    fc_int = fc[int_rois, :][:, int_rois].mean(dtype=float)
+    fc_out = fc[int_rois[:, None], ext_rois].mean(dtype=float)
+    sc_int = (sc[int_rois, :][:, int_rois].sum(dtype=float)) / len(int_rois)
+    sc_out = (sc[int_rois[:, None], ext_rois].sum(dtype=float)) / len(int_rois)
+    module_features = np.array([fc_int, fc_out, sc_int, sc_out])
+    module_labels = np.array(
+        ["FCINT_" + label, "FCOUT_" + label, "SCINT_" + label, "SCOUT_" + label]
+    )
+
+    return module_features, module_labels
+
+
+def tree_connectivity(tree_dictionary, sc, fc):
+    t_features = np.array([])
+    t_features_names = np.array([])
+    for mod in tree_dictionary:
+        rois_in_clust = tree_dictionary[mod]
+        if len(rois_in_clust) > 1:
+            l_features, l_names = module_connectivity(rois_in_clust, mod, sc, fc)
+            t_features = np.hstack([t_features, l_features])
+            t_features_names = np.hstack([t_features_names, l_names])
+    return t_features, t_features_names
 
 
 def get_module_img(atlas, rois, value=1):

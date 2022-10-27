@@ -24,7 +24,9 @@ def get_module_img(atlas, rois, value=1):
 
 
 def get_mae_cv(X, y, model, folds=10):
-    Y_pred = cross_val_predict(model, X, y, cv=folds)
+    # Y_pred = cross_val_predict(model, X, y, cv=folds)
+    reg = model.fit(X, y)
+    Y_pred = reg.predict(X)
     mae = mean_absolute_error(y, Y_pred)
     mae_std = np.std(np.abs(Y_pred - y))
     return mae, mae_std
