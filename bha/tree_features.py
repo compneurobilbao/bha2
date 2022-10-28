@@ -127,6 +127,30 @@ def module_connectivity(rois, label, sc, fc):
     return module_features, module_labels
 
 
+def module_connectivity_fc(rois, label, fc):
+    int_rois = np.array(rois)
+    ext_rois = np.setdiff1d(np.array([i for i in range(len(fc))]), int_rois)
+
+    fc_int = np.nanmean(fc[int_rois, :][:, int_rois], dtype=float)
+    fc_out = np.nanmean(fc[int_rois[:, None], ext_rois], dtype=float)
+    module_features = np.array([fc_int, fc_out])
+    module_labels = np.array(["FCINT_" + label, "FCOUT_" + label])
+
+    return module_features, module_labels
+
+
+def tree_connectivity_fc(tree_dictionary, fc):
+    t_features = np.array([])
+    t_features_names = np.array([])
+    for mod in tree_dictionary:
+        rois_in_clust = tree_dictionary[mod]
+        if len(rois_in_clust) > 1:
+            l_features, l_names = module_connectivity_fc(rois_in_clust, mod, fc)
+            t_features = np.hstack([t_features, l_features])
+            t_features_names = np.hstack([t_features_names, l_names])
+    return t_features, t_features_names
+
+
 def tree_connectivity(tree_dictionary, sc, fc):
     t_features = np.array([])
     t_features_names = np.array([])

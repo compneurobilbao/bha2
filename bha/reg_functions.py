@@ -24,9 +24,9 @@ def get_module_img(atlas, rois, value=1):
 
 
 def get_mae_cv(X, y, model, folds=10):
-    # Y_pred = cross_val_predict(model, X, y, cv=folds)
-    reg = model.fit(X, y)
-    Y_pred = reg.predict(X)
+    Y_pred = cross_val_predict(model, X, y, cv=folds)
+    # reg = model.fit(X, y)
+    # Y_pred = reg.predict(X)
     mae = mean_absolute_error(y, Y_pred)
     mae_std = np.std(np.abs(Y_pred - y))
     return mae, mae_std
@@ -77,7 +77,9 @@ def optimal_brain_map(
     atlas = nib.load(os.path.join(project_path, atlas_name))
     module_coef = []
     for idx, mod in enumerate(optimal_modules):
-        rois = label_dict[mod[6:]]
+        rois = label_dict[
+            mod[6:]
+        ]  # [6:] is to remove FCINT_/FCEXT_ from the module name
         module_coef.append(get_module_img(atlas, rois, abs(optimal_coeffs[idx])))
 
     coeff_module_avg = np.array(module_coef).sum(axis=0)
