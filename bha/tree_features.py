@@ -115,10 +115,10 @@ def module_connectivity(rois, label, sc, fc):
     int_rois = np.array(rois)
     ext_rois = np.setdiff1d(np.array([i for i in range(len(sc))]), int_rois)
 
-    fc_int = fc[int_rois, :][:, int_rois].mean(dtype=float)
-    fc_out = fc[int_rois[:, None], ext_rois].mean(dtype=float)
-    sc_int = (sc[int_rois, :][:, int_rois].sum(dtype=float)) / len(int_rois)
-    sc_out = (sc[int_rois[:, None], ext_rois].sum(dtype=float)) / len(int_rois)
+    fc_int = np.nanmean(fc[int_rois, :][:, int_rois], dtype=float)
+    fc_out = np.nanmean(fc[int_rois[:, None], ext_rois], dtype=float)
+    sc_int = np.nansum(sc[int_rois, :][:, int_rois], dtype=float) / len(int_rois)
+    sc_out = np.nansum(sc[int_rois[:, None], ext_rois], dtype=float) / len(int_rois)
     module_features = np.array([fc_int, fc_out, sc_int, sc_out])
     module_labels = np.array(
         ["FCINT_" + label, "FCOUT_" + label, "SCINT_" + label, "SCOUT_" + label]
