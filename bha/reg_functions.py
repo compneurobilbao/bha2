@@ -13,7 +13,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_absolute_error, r2_score
 from sklearn.feature_selection import RFECV, RFE
 from sklearn.svm import SVR
-from sklearn.model_selection import cross_val_predict, GridSearchCV
+from sklearn.model_selection import cross_val_predict, GridSearchCV, cross_val_score
 from scipy import stats
 
 
@@ -23,12 +23,15 @@ def get_module_img(atlas, rois, value=1):
     return module_img
 
 
-def get_mae_cv(X, y, model, folds=10):
-    Y_pred = cross_val_predict(model, X, y, cv=folds)
+def get_mae_cv(X, y, model, cv=None):
+    #Y_pred = cross_val_predict(model, X, y, cv=folds)
     # reg = model.fit(X, y)
     # Y_pred = reg.predict(X)
-    mae = mean_absolute_error(y, Y_pred)
-    mae_std = np.std(np.abs(Y_pred - y))
+    #mae = mean_absolute_error(y, Y_pred)
+    #mae_std = np.std(np.abs(Y_pred - y))
+    scores = cross_val_score(model, X, y, cv=cv, scoring="neg_mean_absolute_error")
+    mae = -scores.mean()
+    mae_std = scores.std()
     return mae, mae_std
 
 
