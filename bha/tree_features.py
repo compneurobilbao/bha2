@@ -66,6 +66,12 @@ def get_module_matrix(matrix, rois):
     return module_matrix
 
 
+def get_module_matrix_external(matrix, rois):
+    ext_rois = np.setdiff1d(np.array([i for i in range(len(matrix))]), rois)
+    module_matrix = matrix[rois][:,ext_rois]
+    return module_matrix
+
+
 def level_from_tree(tree, level_num):
     level_keys = list(filter(lambda x: x.startswith('lvl_' + str(level_num) + '_'), tree.keys()))
     level = [tree[key] for key in level_keys]
@@ -119,6 +125,33 @@ def threshold_based_similarity(fcm, scm, level, labels):
         if len(rois) > 1:
             mod_fc = get_module_matrix(fcm, rois)
             mod_sc = get_module_matrix(scm, rois)
+            similarities = []
+            tresholds = []
+            for thr_a in np.arange(0, 1, 0.1):
+                for thr_b in np.arange(0, 1, 0.1):
+                    thr_fc = np.where(abs(mod_fc) > thr_a, 1, 0)
+                    thr_sc = np.where(mod_sc > thr_b, 1, 0)
+                    if (thr_fc.sum() + thr_sc.sum()) != 0:
+                        thr_sim = (
+                            2
+                            * np.multiply(thr_fc, thr_sc).sum()
+                            / (thr_fc.sum() + thr_sc.sum())
+                        )
+                        similarities.append(thr_sim)
+                        tresholds.append(np.array([thr_a, thr_b]))
+            module_sim.append(np.array(similarities).max())
+            module_thr[mod_label] = tresholds[np.array(similarities).argmax()]
+    return module_sim, module_thr
+
+
+def threshold_based_similarity_external(fcm, scm, level, labels):
+
+    module_sim = []
+    module_thr = {}
+    for rois, mod_label in zip(level, labels):
+        if len(rois) > 1:
+            mod_fc = get_module_matrix_external(fcm, rois)
+            mod_sc = get_module_matrix_external(scm, rois)
             similarities = []
             tresholds = []
             for thr_a in np.arange(0, 1, 0.1):
@@ -201,8 +234,10 @@ def brain_maps_network_measures(tree, sc, fc, atlas, range_of_levels):
             p_length_sc_vol = p_length_sc_vol + module_vol*n_measures_sc[mod_label][3]
             p_length_fc_vol = p_length_fc_vol + module_vol*n_measures_fc[mod_label][3]
 
-    sc_img_list = [strength_sc_vol, betweenness_sc_vol, c_coeff_sc_vol, p_length_sc_vol]
-    fc_img_list = [strength_fc_vol, betweenness_fc_vol, c_coeff_fc_vol, p_length_fc_vol]
+    sc_img_list = [strength_sc_vol/max(strength_sc_vol.flatten()), betweenness_sc_vol/max(betweenness_sc_vol.flatten()), 
+        c_coeff_sc_vol/max(c_coeff_sc_vol.flatten()), p_length_sc_vol/max(p_length_sc_vol.flatten())]
+    fc_img_list = [strength_fc_vol/max(strength_fc_vol.flatten()), betweenness_fc_vol/max(betweenness_fc_vol.flatten()), 
+        c_coeff_fc_vol/max(c_coeff_fc_vol.flatten()), p_length_fc_vol/max(p_length_fc_vol.flatten())]
     return sc_img_list, fc_img_list
             
    
