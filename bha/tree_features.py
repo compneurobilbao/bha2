@@ -21,10 +21,22 @@ def connectome_average(fc_all, sc_all):
 
 
 def matrix_fusion(g, fcm, scm):
-    cc = np.multiply(((g * abs(fcm)) + ((1 - g) * scm)), np.sign(fcm))
+    if g == 0.0:
+        cc = scm
+    elif g == 1.0:
+        cc = fcm
+    else:
+        cc = np.multiply(((g * abs(fcm)) + ((1 - g) * scm)), np.sign(fcm))
+
     cc_dist = pdist(cc, "cosine")
     W = cc_dist / max(cc_dist)
     return W
+
+def density_threshold(W, density):
+    W_thr = np.zeros(W.shape)
+    W_sorted = np.sort(abs(W.flatten()))
+    W_thr[np.where(abs(W) > W_sorted[int((1 - density) * len(W_sorted))])] = 1
+    return W*W_thr
 
 
 def tree_modules(W, num_clust):
@@ -60,6 +72,11 @@ def tree_dictionary(init_level, end_level, W, tree_class = "reduced"):
     return t_dict
 
 
+def get_atlas_rois_from_mask(mask, atlas):
+    mask_data = mask.get_fdata()
+    atlas_data = atlas.get_fdata()
+    mask_rois = np.setdiff1d(np.unique(atlas_data[mask_data == 1]), 0)
+    return mask_rois
 
 def get_module_matrix(matrix, rois):
     module_matrix = matrix[rois, :][:, rois]
@@ -85,7 +102,7 @@ def T_from_level(level):
         T[mod] = idx+1
     return T
 
-def adj_matrices_from_level(sc, fc, level, fc_type='pos', thresh=0.2):
+def adj_matrices_from_level(sc, fc, level, fc_type='abs', thresh=0.2):
     reduced_sc = np.zeros((len(level), len(level)))
     reduced_fc = np.zeros((len(level), len(level)))
     if fc_type == 'abs':
@@ -139,8 +156,12 @@ def threshold_based_similarity(fcm, scm, level, labels):
                         )
                         similarities.append(thr_sim)
                         tresholds.append(np.array([thr_a, thr_b]))
-            module_sim.append(np.array(similarities).max())
-            module_thr[mod_label] = tresholds[np.array(similarities).argmax()]
+            if len(similarities) > 0:
+                module_sim.append(np.array(similarities).max())
+                module_thr[mod_label] = tresholds[np.array(similarities).argmax()]
+            else:
+                module_sim.append(np.nan)
+                module_thr[mod_label] = np.array([np.nan, np.nan])
     return module_sim, module_thr
 
 
@@ -190,58 +211,62 @@ def cross_modularity(fc, sc, level, labels):
 
     return crossmod, thrs
 
-def network_measures(Graph):
+
+def measure_strength(Graph):
     strength = {node: 0 for node in Graph.nodes()}
     for u, v, weight in Graph.edges(data='weight'):
         strength[u] += weight
         strength[v] += weight
+    return strength
+
+
+def measure_betweenness(Graph):
     betweenness = nx.betweenness_centrality(Graph, weight='weight')
+    return betweenness
+
+
+def measure_clustering_coef(Graph):
     clustering_coef = nx.clustering(Graph, weight='weight')
+    return clustering_coef
+
+
+def measure_pathlength(Graph):
     pathlength = dict(nx.shortest_path_length(Graph, weight='weight'))
     node_avg_pathlength = {node: 0 for node in Graph.nodes()}
     for node,plengths in pathlength.items():
         node_avg_pathlength[node] = sum(plengths.values())
-    n_measures = {key: [strength[key], betweenness[key], 
-        clustering_coef[key], node_avg_pathlength[key]] 
-        for key in betweenness.keys()}
-    return n_measures
+    return node_avg_pathlength
 
 
-def brain_maps_network_measures(tree, sc, fc, atlas, range_of_levels):
+def brain_maps_network_measure(tree, sc, fc, atlas, range_of_levels, measure='strength'):
     atlas_data = atlas.get_fdata()
-    strength_sc_vol = np.zeros(atlas_data[:,:,:,0].shape)
-    strength_fc_vol = np.zeros(atlas_data[:,:,:,0].shape)
-    betweenness_sc_vol = np.zeros(atlas_data[:,:,:,0].shape)
-    betweenness_fc_vol = np.zeros(atlas_data[:,:,:,0].shape)
-    c_coeff_sc_vol = np.zeros(atlas_data[:,:,:,0].shape)
-    c_coeff_fc_vol = np.zeros(atlas_data[:,:,:,0].shape)
-    p_length_sc_vol = np.zeros(atlas_data[:,:,:,0].shape)
-    p_length_fc_vol = np.zeros(atlas_data[:,:,:,0].shape)
+    n_measure_sc_vol = np.zeros(atlas_data[:,:,:,0].shape)
+    n_measure_fc_vol = np.zeros(atlas_data[:,:,:,0].shape)
 
     for lv in range_of_levels:
         level, labels = level_from_tree(tree, lv)
         sc_level_net, fc_level_net = network_from_level(sc, fc, level, labels)
-        n_measures_sc = network_measures(sc_level_net)
-        n_measures_fc = network_measures(fc_level_net)
+        if measure == 'strength':
+            n_measure_sc = measure_strength(sc_level_net)
+            n_measure_fc = measure_strength(fc_level_net)
+        elif measure == 'betweenness':
+            n_measure_sc = measure_betweenness(sc_level_net)
+            n_measure_fc = measure_betweenness(fc_level_net)
+        elif measure == 'clustering_coef':
+            n_measure_sc = measure_clustering_coef(sc_level_net)
+            n_measure_fc = measure_clustering_coef(fc_level_net)
+        elif measure == 'pathlength':
+            n_measure_sc = measure_pathlength(sc_level_net)
+            n_measure_fc = measure_pathlength(fc_level_net)
+        else:
+            raise ValueError('Measure not found')
         for rois, mod_label in zip(level, labels):
             module_vol = get_module_vol(atlas, rois)
-            strength_sc_vol = strength_sc_vol + module_vol*n_measures_sc[mod_label][0]
-            strength_fc_vol = strength_fc_vol + module_vol*n_measures_fc[mod_label][0]
-            betweenness_sc_vol = betweenness_sc_vol + module_vol*n_measures_sc[mod_label][1]
-            betweenness_fc_vol = betweenness_fc_vol + module_vol*n_measures_fc[mod_label][1]
-            c_coeff_sc_vol = c_coeff_sc_vol + module_vol*n_measures_sc[mod_label][2]
-            c_coeff_fc_vol = c_coeff_fc_vol + module_vol*n_measures_fc[mod_label][2]
-            p_length_sc_vol = p_length_sc_vol + module_vol*n_measures_sc[mod_label][3]
-            p_length_fc_vol = p_length_fc_vol + module_vol*n_measures_fc[mod_label][3]
-
-    sc_img_list = [strength_sc_vol/max(strength_sc_vol.flatten()), betweenness_sc_vol/max(betweenness_sc_vol.flatten()), 
-        c_coeff_sc_vol/max(c_coeff_sc_vol.flatten()), p_length_sc_vol/max(p_length_sc_vol.flatten())]
-    fc_img_list = [strength_fc_vol/max(strength_fc_vol.flatten()), betweenness_fc_vol/max(betweenness_fc_vol.flatten()), 
-        c_coeff_fc_vol/max(c_coeff_fc_vol.flatten()), p_length_fc_vol/max(p_length_fc_vol.flatten())]
-    return sc_img_list, fc_img_list
+            n_measure_sc_vol = n_measure_sc_vol + module_vol*n_measure_sc[mod_label]
+            n_measure_fc_vol = n_measure_fc_vol + module_vol*n_measure_fc[mod_label]
+    return n_measure_sc_vol/max(n_measure_sc_vol.flatten()), n_measure_fc_vol/max(n_measure_fc_vol.flatten())
             
    
-
 def module_connectivity(rois, label, sc, fc):
     int_rois = np.array(rois)
     ext_rois = np.setdiff1d(np.array([i for i in range(len(sc))]), int_rois)
