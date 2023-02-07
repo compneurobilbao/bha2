@@ -12,13 +12,18 @@ import json
 from numba import njit, jit, prange
 import networkx as nx
 
+# def connectome_average(fc_all, sc_all):
+#     fcm = np.median(fc_all, axis=0) - np.diag(np.diag(np.median(fc_all, axis=0)))
+#     scm = np.median(
+#         np.array([np.log10(sc + 1) / (np.log10(sc + 1)).max() for sc in sc_all]), axis=0
+#     )
+#     return fcm, scm
 def connectome_average(fc_all, sc_all):
-    fcm = np.median(fc_all, axis=0) - np.diag(np.diag(np.median(fc_all, axis=0)))
+    fcm = np.median(fc_all, axis=0)
     scm = np.median(
-        np.array([np.log10(sc + 1) / (np.log10(sc + 1)).max() for sc in sc_all]), axis=0
+        np.array([np.log10((sc / np.max(sc))+1) for sc in sc_all]), axis=0
     )
     return fcm, scm
-
 
 def matrix_fusion(g, fcm, scm):
     if g == 0.0:
@@ -113,6 +118,7 @@ def adj_matrices_from_level(sc, fc, level, fc_type='abs', thresh=0.2):
         fc_mod = np.where(fc > 0, fc, 0)
     elif fc_type == 'thr':
         fc_mod = np.where(np.abs(fc) > thresh, fc, 0)
+        
     for i, int_rois in enumerate(level):
         for j, ext_rois in enumerate(level):
             if i == j:
