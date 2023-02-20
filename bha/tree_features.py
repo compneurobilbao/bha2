@@ -9,7 +9,6 @@ from scipy.cluster.hierarchy import linkage, fcluster
 from scipy.spatial.distance import pdist
 import nibabel as nib
 import json
-from numba import njit, jit, prange
 import networkx as nx
 
 # def connectome_average(fc_all, sc_all):
@@ -139,6 +138,26 @@ def network_from_level(sc, fc, level, labels):
     G_fc = nx.relabel_nodes(nx.from_numpy_matrix(reduced_fc), node_dict, copy=False)
     return G_sc, G_fc
 
+def similarity_mean_level(fcm, scm, level):
+
+    similarities = []
+    for rois in level:
+        if len(rois) > 1:
+            mod_fc = get_module_matrix(fcm, rois)
+            mod_sc = get_module_matrix(scm, rois)
+            mod_fc_bin = np.where(abs(mod_fc) > 0, 1, 0)
+            mod_sc_bin = np.where(mod_sc > 0, 1, 0)
+            
+            if (mod_fc_bin.sum() + mod_sc_bin.sum()) != 0:
+                sim = (
+                    2
+                    * np.multiply(mod_fc_bin, mod_sc_bin).sum()
+                    / (mod_fc_bin.sum() + mod_sc_bin.sum())
+                )
+                similarities.append(sim)
+            else:
+                similarities.append(np.nan)
+    return np.nanmean(similarities)
 
 def threshold_based_similarity(fcm, scm, level, labels):
 
