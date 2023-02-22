@@ -30,7 +30,7 @@ def matrix_fusion(g, fcm, scm):
     elif g == 1.0:
         cc = fcm
     else:
-        cc = np.multiply(((g * abs(fcm)) + ((1 - g) * scm)), np.sign(fcm))
+        cc = (g * abs(fcm)) + ((1 - g) * scm)
 
     cc_dist = pdist(cc, "cosine")
     W = cc_dist / max(cc_dist)
