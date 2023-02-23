@@ -19,9 +19,10 @@ import networkx as nx
 #     return fcm, scm
 def connectome_average(fc_all, sc_all):
     fcm = np.median(fc_all, axis=0)
-    scm = np.median(
-        np.array([np.log10((sc / np.max(sc))+1) for sc in sc_all]), axis=0
-    )
+    #scm = np.median(
+    #    np.array([np.log10((sc / np.max(sc))+1) for sc in sc_all]), axis=0
+    #)
+    scm = np.median(sc_all, axis=0)
     return fcm, scm
 
 def matrix_fusion(g, fcm, scm):
@@ -44,7 +45,7 @@ def density_threshold(W, density):
 
 
 def tree_modules(W, num_clust):
-    Z = linkage(W, "weighted")
+    Z = linkage(W, "average")
     T = fcluster(Z, num_clust, criterion="maxclust")
     return T
 
