@@ -11,4 +11,5 @@ RUN if [ -f "/tmp/conda-tmp/environment.yml" ]; then umask 0002 && /opt/conda/bi
 #     && apt-get -y install --no-install-recommends <your-package-list-here>
 RUN apt-get update && apt-get -y install gcc
 RUN pip3 install git+https://github.com/rmarkello/abagen
+RUN pip3 install git+https://github.com/netneurolab/neuromaps
 RUN pip3 install nilearn nibabel nipy

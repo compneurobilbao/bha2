@@ -10,18 +10,11 @@ from scipy.spatial.distance import pdist
 import nibabel as nib
 import json
 import networkx as nx
+from scipy.stats import zscore
 
-# def connectome_average(fc_all, sc_all):
-#     fcm = np.median(fc_all, axis=0) - np.diag(np.diag(np.median(fc_all, axis=0)))
-#     scm = np.median(
-#         np.array([np.log10(sc + 1) / (np.log10(sc + 1)).max() for sc in sc_all]), axis=0
-#     )
-#     return fcm, scm
+
 def connectome_average(fc_all, sc_all):
     fcm = np.median(fc_all, axis=0)
-    #scm = np.median(
-    #    np.array([np.log10((sc / np.max(sc))+1) for sc in sc_all]), axis=0
-    #)
     scm = np.median(sc_all, axis=0)
     return fcm, scm
 
@@ -292,7 +285,7 @@ def brain_maps_network_measure(tree, sc, fc, atlas, range_of_levels, measure='st
             n_measure_fc_vol = n_measure_fc_vol + module_vol*n_measure_fc[mod_label]
     return n_measure_sc_vol/max(n_measure_sc_vol.flatten()), n_measure_fc_vol/max(n_measure_fc_vol.flatten())
             
-   
+
 def module_connectivity(rois, label, sc, fc):
     int_rois = np.array(rois)
     ext_rois = np.setdiff1d(np.array([i for i in range(len(sc))]), int_rois)
@@ -359,3 +352,28 @@ def add_gamma_to_lvl_dict(dict, g):
     vals = list(dict.values())
     newdictionary = {k: v for k, v in zip(newkeys, vals)}
     return newdictionary
+
+def generate_receptor_matrix(receptor_dict):
+    receptor_names = np.array(["5HT1a", "5HT1b", "5HT2a", "5HT4", "5HT6", "5HTT", "A4B2",
+                           "CB1", "D1", "D2", "DAT", "GABAa", "H3", "M1", "mGluR5",
+                           "MU", "NAT", "NMDA", "VAChT"])
+    nnodes = len(receptor_dict[list(receptor_dict.keys())[0]])
+    receptor_mat = np.zeros([nnodes, len(receptor_names)])
+    image_names = list(receptor_dict.keys())
+    for i, r in enumerate(receptor_names):
+        images_of_receptor = list(filter(lambda x: x.startswith(r), image_names))
+        if len(images_of_receptor) == 1:
+            receptor_mat[:, i] = receptor_dict[images_of_receptor[0]]
+        elif len(images_of_receptor) > 1:
+            scaler = 0
+            for im in images_of_receptor:
+                weight = float((im.split('hc')[-1]).split('_')[0])
+                scaler += weight
+                receptor_mat[:, i] += zscore(receptor_dict[im])*weight
+            receptor_mat[:, i] /= scaler
+        else:
+            raise ValueError('Receptor not found')
+    df = pd.DataFrame(receptor_mat, columns=receptor_names, 
+                        index=np.array(["module"+str(i+1) for i in range(nnodes)]))
+    return df
+    
