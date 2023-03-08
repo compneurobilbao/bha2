@@ -1,0 +1,14 @@
+auditory
+sensory_motor
+medial_visual
+lateral_visual
+visuospatial
+dorsal_attention
+ventral_attention
+basal_ganglia
+subcortical
+dmn
+fronto_parietal
+executive_control
+salience
+language
