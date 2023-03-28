@@ -1,11 +1,39 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
 // README at: https://github.com/devcontainers/templates/tree/main/src/anaconda
 {
-	"name": "Anaconda (Python 3)",
-	"build": { 
+	"name": "BHA2",
+	"build": {
 		"context": "..",
 		"dockerfile": "Dockerfile"
-	}
+	},
+
+	"customizations": {
+        "vscode": {
+            "extensions": [
+                "EditorConfig.EditorConfig",
+                "ms-python.python",
+                "ms-python.vscode-pylance",
+                "ms-toolsai.jupyter",
+                "ms-python.black-formatter"
+            ],
+
+            "settings": {
+                "python.defaultInterpreterPath": "/opt/conda/bin/python",
+                "jupyter.notebookKernel": "/opt/conda/bin/python",
+                "python.analysis.typeCheckingMode": "basic",
+                "python.formatting.provider": "none",
+                "[python]": {
+                    "editor.defaultFormatter": "ms-python.black-formatter",
+                    "editor.formatOnSave": true
+                  },
+				"python.linting.pylintArgs": [
+					"--init-hook",
+					"import sys; sys.path.append('${workspaceFolder}/src')"
+				]
+            }
+
+        }
+    },
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},

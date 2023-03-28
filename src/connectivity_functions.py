@@ -1,10 +1,19 @@
 from scipy.spatial.distance import pdist
 import numpy as np
 
+
 def connectome_average(fc_all, sc_all):
     fcm = np.median(fc_all, axis=0)
     scm = np.median(sc_all, axis=0)
     return fcm, scm
+
+
+def remove_rois_from_connectomes(rois, fcm, scm):
+    fcm_rois_rem = np.delete(fcm, rois, axis=0)
+    fcm_rois_rem = np.delete(fcm_rois_rem, rois, axis=1)
+    scm_rois_rem = np.delete(scm, rois, axis=0)
+    scm_rois_rem = np.delete(scm_rois_rem, rois, axis=1)
+    return fcm_rois_rem, scm_rois_rem
 
 
 def matrix_fusion(g, fcm, scm):
