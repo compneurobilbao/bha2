@@ -6,13 +6,14 @@ import numpy as np
 from scipy.cluster.hierarchy import linkage, fcluster
 import warnings
 
+
 def tree_modules(W, num_clust):
     Z = linkage(W, "average")
     T = fcluster(Z, num_clust, criterion="maxclust")
     return T
 
 
-def level_dictionary(T,lvl):
+def level_dictionary(T, lvl):
     l_dict = {}
     for i in range(1, lvl + 1):
         rois_in_clust = np.where(T == i)[0]
@@ -20,7 +21,9 @@ def level_dictionary(T,lvl):
             desc = "lvl_" + str(lvl) + "_mod_" + str(i)
             l_dict[desc] = rois_in_clust.tolist()
         else:
-            warnings.warn("Empty cluster found in level " + str(lvl) + ', module ' + str(i) + "!")
+            warnings.warn(
+                "Empty cluster found in level " + str(lvl) + ", module " + str(i) + "!"
+            )
     return l_dict
 
 
@@ -28,7 +31,7 @@ def tree_dictionary(init_level, end_level, W, tree_class="reduced"):
     t_dict = {}
     for i in range(init_level, end_level + 1):
         T = tree_modules(W, i)
-        level_dict = level_dictionary(T,i)
+        level_dict = level_dictionary(T, i)
         for mod in level_dict:
             rois = level_dict[mod]
             if tree_class == "reduced":

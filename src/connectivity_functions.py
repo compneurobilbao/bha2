@@ -47,7 +47,7 @@ def get_module_matrix_external(matrix, rois):
     return module_matrix
 
 
-def similarity_mean_level(fcm, scm, level):
+def similarity_level(fcm, scm, level):
 
     similarities = []
     for rois in level:
@@ -66,7 +66,7 @@ def similarity_mean_level(fcm, scm, level):
                 similarities.append(sim)
             else:
                 similarities.append(np.nan)
-    return np.nanmean(similarities)
+    return similarities
 
 
 def modularity(A, T):
@@ -77,3 +77,13 @@ def modularity(A, T):
     s = np.array([T for i in range(N)], dtype=np.float64)
     Q = B[np.where((s.T - s) == 0)].sum() / m
     return Q
+
+
+def intramodular_modularity(A, T):
+    m = sum(A.flatten())
+    ext_T = np.setdiff1d(np.array([i for i in range(len(A))]), T)
+    mc = A[T][:, T]
+    mc_m = sum(mc.flatten()) / m
+    ec = A[T][:, ext_T]
+    Q_m = mc_m - np.power((2 * sum(mc.flatten()) + sum(ec.flatten())) / (2 * m), 2)
+    return Q_m
