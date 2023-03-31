@@ -13,6 +13,8 @@ RUN apt-get update && apt-get -y install gcc
 RUN pip3 install git+https://github.com/rmarkello/abagen
 RUN pip3 install git+https://github.com/netneurolab/neuromaps
 RUN pip3 install nilearn nibabel nipy
+RUN pip3 install libpysal==4.7.0
+RUN pip3 install spreg==1.1.0
 
 ENV ND_ENTRYPOINT="/neurodocker/startup.sh"
 
@@ -40,7 +42,7 @@ RUN export ND_ENTRYPOINT="/neurodocker/startup.sh" \
     &&   echo 'if [ -n "$1" ]; then "$@"; else /usr/bin/env bash; fi' >> "$ND_ENTRYPOINT"; \
     fi \
     && chmod -R 777 /neurodocker && chmod a+s /neurodocker
-    
+
 ENV FSLDIR="/opt/fsl-6.0.1" \
     PATH="/opt/fsl-6.0.1/bin:$PATH" \
     FSLOUTPUTTYPE="NIFTI_GZ" \
