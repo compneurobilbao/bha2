@@ -18,18 +18,14 @@
             ],
 
             "settings": {
-                "python.defaultInterpreterPath": "/opt/conda/bin/python",
-                "jupyter.notebookKernel": "/opt/conda/bin/python",
+                "python.defaultInterpreterPath": "/usr/local/bin/python",
+                "jupyter.notebookKernel": "/usr/local/bin/python",
                 "python.analysis.typeCheckingMode": "basic",
                 "python.formatting.provider": "none",
                 "[python]": {
                     "editor.defaultFormatter": "ms-python.black-formatter",
                     "editor.formatOnSave": true
-                  },
-				"python.linting.pylintArgs": [
-					"--init-hook",
-					"import sys; sys.path.append('${workspaceFolder}/src')"
-				]
+                  }
             }
 
         }
@@ -42,7 +38,7 @@
 	// "forwardPorts": [],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	// "postCreateCommand": "python --version",
+	"postCreateCommand": "pip install -e .",
 
 	// Configure tool-specific properties.
 	// "customizations": {},

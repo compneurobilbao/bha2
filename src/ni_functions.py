@@ -1,6 +1,9 @@
 import numpy as np
 import nibabel as nib
 import pandas as pd
+import libpysal
+from spreg import ML_Lag
+from spreg import t_stat
 
 
 def get_atlas_rois_from_mask(mask, atlas):
@@ -32,3 +35,35 @@ def image_overlaps(vol1, vol2):
     intersect = np.where((vol1 != 0) & (vol2 != 0), 1, 0)
     overlap = intersect.sum() / vol1.sum()
     return overlap
+
+
+def distance_between_modules(module_A, module_B, atlas):
+    atlas_coords = get_atlas_coords(atlas)
+    d_list = []
+    for roi_A in module_A:
+        roi_A_coords = atlas_coords.loc[roi_A]
+        for roi_B in module_B:
+            roi_B_coords = atlas_coords.loc[roi_B]
+            d_list.append(np.linalg.norm(roi_A_coords - roi_B_coords))
+
+    return np.median(d_list)
+
+
+# Maybe include in a new file
+def regression_with_transcriptome(profile, genexp_mat, distance):
+    pvals = []
+    tvals = []
+    for genexp in genexp_mat:
+        w = libpysal.weights.KNN(distance, 1)
+        w = libpysal.weights.insert_diagonal(w, np.zeros(w.n))
+
+        mllag = ML_Lag(
+            genexp[:, None],
+            profile[:, None],
+            w,
+            name_y="Gene",
+            name_x=["profile"],
+        )
+        pvals.append(t_stat(mllag)[1][1])
+        tvals.append(t_stat(mllag)[1][0])
+    return pvals, tvals
