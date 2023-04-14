@@ -38,7 +38,7 @@
 	// "forwardPorts": [],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "pip install -e .",
+	"postCreateCommand": "pip3 install -e .",
 
 	// Configure tool-specific properties.
 	// "customizations": {},

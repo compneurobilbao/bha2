@@ -11,3 +11,5 @@ setuptools==67.6.1
 abagen==0.1.3
 ipykernel==6.22.0
 neuromaps==0.0.3
+scikit-learn==1.2.2
+fastcluster==1.2.6

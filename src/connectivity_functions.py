@@ -1,4 +1,4 @@
-from scipy.spatial.distance import pdist
+from scipy.spatial.distance import pdist, squareform
 import numpy as np
 
 
@@ -23,10 +23,7 @@ def matrix_fusion(g, fcm, scm):
         cc = fcm
     else:
         cc = (g * abs(fcm)) + ((1 - g) * scm)
-
-    cc_dist = pdist(cc, "cosine")
-    W = cc_dist / max(cc_dist)
-    return W
+    return cc
 
 
 def density_threshold(W, density):

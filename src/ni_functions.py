@@ -15,7 +15,7 @@ def get_atlas_rois_from_mask(mask, atlas):
 
 def get_module_vol(atlas, rois, value=1):
     atlas_data = atlas.get_fdata()
-    module_vol = np.where(atlas_data == (np.array(rois) + 1), value, 0).sum(axis=3)
+    module_vol = np.isin(atlas_data, (np.array(rois) + 1))*value
     return module_vol
 
 
@@ -54,12 +54,17 @@ def regression_with_transcriptome(profile, genexp_mat, distance):
     pvals = []
     tvals = []
     for genexp in genexp_mat:
-        w = libpysal.weights.KNN(distance, 1)
+        genexp_noNaN = genexp[~np.isnan(genexp)]
+        profile_noNaN = profile[~np.isnan(genexp)]
+        distance_noNaN = distance[~np.isnan(genexp), :]
+        distance_noNaN = distance_noNaN[:, ~np.isnan(genexp)]
+
+        w = libpysal.weights.KNN(distance_noNaN, 1)
         w = libpysal.weights.insert_diagonal(w, np.zeros(w.n))
 
         mllag = ML_Lag(
-            genexp[:, None],
-            profile[:, None],
+            genexp_noNaN[:, None],
+            profile_noNaN[:, None],
             w,
             name_y="Gene",
             name_x=["profile"],

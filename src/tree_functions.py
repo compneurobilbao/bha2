@@ -8,7 +8,7 @@ import warnings
 
 
 def tree_modules(W, num_clust):
-    Z = linkage(W, "average")
+    Z = linkage(W, "weighted", "correlation")
     T = fcluster(Z, num_clust, criterion="maxclust")
     return T
 
