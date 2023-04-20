@@ -1,9 +1,6 @@
 import numpy as np
 import nibabel as nib
 import pandas as pd
-import libpysal
-from spreg import ML_Lag
-from spreg import t_stat
 
 
 def get_atlas_rois_from_mask(mask, atlas):
@@ -15,7 +12,7 @@ def get_atlas_rois_from_mask(mask, atlas):
 
 def get_module_vol(atlas, rois, value=1):
     atlas_data = atlas.get_fdata()
-    module_vol = np.isin(atlas_data, (np.array(rois) + 1))*value
+    module_vol = np.isin(atlas_data, (np.array(rois) + 1)) * value
     return module_vol
 
 
@@ -47,28 +44,3 @@ def distance_between_modules(module_A, module_B, atlas):
             d_list.append(np.linalg.norm(roi_A_coords - roi_B_coords))
 
     return np.median(d_list)
-
-
-# Maybe include in a new file
-def regression_with_transcriptome(profile, genexp_mat, distance):
-    pvals = []
-    tvals = []
-    for genexp in genexp_mat:
-        genexp_noNaN = genexp[~np.isnan(genexp)]
-        profile_noNaN = profile[~np.isnan(genexp)]
-        distance_noNaN = distance[~np.isnan(genexp), :]
-        distance_noNaN = distance_noNaN[:, ~np.isnan(genexp)]
-
-        w = libpysal.weights.KNN(distance_noNaN, 1)
-        w = libpysal.weights.insert_diagonal(w, np.zeros(w.n))
-
-        mllag = ML_Lag(
-            genexp_noNaN[:, None],
-            profile_noNaN[:, None],
-            w,
-            name_y="Gene",
-            name_x=["profile"],
-        )
-        pvals.append(t_stat(mllag)[1][1])
-        tvals.append(t_stat(mllag)[1][0])
-    return pvals, tvals
