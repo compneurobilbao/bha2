@@ -45,7 +45,6 @@ def get_module_matrix_external(matrix, rois):
 
 
 def similarity_level(fcm, scm, level):
-
     similarities = []
     for rois in level:
         if len(rois) > 1:
@@ -76,7 +75,7 @@ def modularity(A, T):
     return Q
 
 
-def intramodular_modularity(A, T):
+def local_modularity(A, T):
     m = sum(A.flatten())
     ext_T = np.setdiff1d(np.array([i for i in range(len(A))]), T)
     mc = A[T][:, T]
