@@ -16,13 +16,13 @@ def remove_rois_from_connectomes(rois, fcm, scm):
     return fcm_rois_rem, scm_rois_rem
 
 
-def matrix_fusion(g, fcm, scm):
+def matrix_fusion(g, fcb, scb):
     if g == 0.0:
-        cc = scm
+        cc = scb
     elif g == 1.0:
-        cc = fcm
+        cc = fcb
     else:
-        cc = (g * abs(fcm)) + ((1 - g) * scm)
+        cc = (g * fcb) + ((1 - g) * scb)
     return cc
 
 
