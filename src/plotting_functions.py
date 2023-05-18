@@ -53,7 +53,7 @@ def plot_module_size_dend(Z, module_rois, den, c="black", s=":", w=3):
     )
 
 
-def plot_corr(x, y, lx=0.5, ly=0.5, hue=None, ax=None, fsize=14, **kws):
+def plot_corr(x, y, lx=0.85, ly=0.15, hue=None, ax=None, fsize=14, **kws):
     """Plot the correlation coefficient in the top left hand corner of a plot."""
     r, p = pearsonr(x, y)
     ax = ax or plt.gca()
