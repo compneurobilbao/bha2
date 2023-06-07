@@ -24,7 +24,10 @@ def get_atlas_coords(atlas):
     atlas_coords = pd.DataFrame(
         atlas_voxels, columns=["x", "y", "z"], index=atlas_roivals
     )
-    atlas_centroids = atlas_coords.groupby(atlas_coords.index).mean().astype(int)
+    atlas_centroids = atlas_coords.groupby(atlas_coords.index).mean()
+    atlas_centroids["VOL"] = (
+        atlas_coords["x"].groupby(atlas_coords.index).count().astype(int)
+    )
     return atlas_centroids
 
 
@@ -38,9 +41,9 @@ def distance_between_modules(module_A, module_B, atlas):
     atlas_coords = get_atlas_coords(atlas)
     d_list = []
     for roi_A in module_A:
-        roi_A_coords = atlas_coords.loc[roi_A]
+        roi_A_coords = atlas_coords.loc[roi_A, ["x", "y", "z"]]
         for roi_B in module_B:
-            roi_B_coords = atlas_coords.loc[roi_B]
+            roi_B_coords = atlas_coords.loc[roi_B, ["x", "y", "z"]]
             d_list.append(np.linalg.norm(roi_A_coords - roi_B_coords))
 
     return np.median(d_list)

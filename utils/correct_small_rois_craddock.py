@@ -3,7 +3,7 @@ import nibabel as nib
 import glob
 import os
 from scipy.ndimage import binary_dilation
-from ni_functions import get_atlas_coords, image_overlaps
+from src.ni_functions import get_atlas_coords, image_overlaps
 import sys
 
 
