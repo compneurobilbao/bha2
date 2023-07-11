@@ -1,5 +1,7 @@
 from scipy.spatial.distance import pdist, squareform
+from src.tree_functions import level_from_tree, T_from_level
 import numpy as np
+
 
 
 def connectome_average(fc_all, sc_all):
@@ -7,6 +9,11 @@ def connectome_average(fc_all, sc_all):
     scm = np.median(sc_all, axis=0)
     return fcm, scm
 
+def density_threshold(W, density):
+    W_thr = np.zeros(W.shape)
+    W_sorted = np.sort(abs(W.flatten()))
+    W_thr[np.where(abs(W) > W_sorted[int((1 - density) * len(W_sorted))])] = 1
+    return W * W_thr
 
 def remove_rois_from_connectomes(rois, fcm, scm):
     fcm_rois_rem = np.delete(fcm, rois, axis=0)
@@ -15,6 +22,18 @@ def remove_rois_from_connectomes(rois, fcm, scm):
     scm_rois_rem = np.delete(scm_rois_rem, rois, axis=1)
     return fcm_rois_rem, scm_rois_rem
 
+def equal_clean_connectomes(fcm, scm):
+    zero_rows_sc = np.where(~scm.any(axis=1))[0]
+    fcm_nonzero, scm_nonzero = remove_rois_from_connectomes(zero_rows_sc, fcm, scm)
+    scm_density = np.where(scm_nonzero.flatten() > 0, 1, 0).sum(dtype=float) / (
+        len(scm_nonzero.flatten())
+    )
+    fcm_thr = density_threshold(fcm_nonzero, scm_density)
+    zero_rows_fc = np.where(~fcm_thr.any(axis=1))[0]
+    fcm_nonzero, scm_nonzero = remove_rois_from_connectomes(
+        zero_rows_fc, fcm_thr, scm_nonzero
+    )
+    return fcm_nonzero, scm_nonzero, zero_rows_fc, zero_rows_sc
 
 def matrix_fusion(g, fcb, scb):
     if g == 0.0:
@@ -24,14 +43,6 @@ def matrix_fusion(g, fcb, scb):
     else:
         cc = (g * fcb) + ((1 - g) * scb)
     return cc
-
-
-def density_threshold(W, density):
-    W_thr = np.zeros(W.shape)
-    W_sorted = np.sort(abs(W.flatten()))
-    W_thr[np.where(abs(W) > W_sorted[int((1 - density) * len(W_sorted))])] = 1
-    return W * W_thr
-
 
 def get_module_matrix(matrix, rois):
     module_matrix = matrix[rois, :][:, rois]
@@ -74,6 +85,14 @@ def modularity(A, T):
     Q = B[np.where((s.T - s) == 0)].sum() / m
     return Q
 
+def x_modularity(tree, l, fcm, scm):
+    level, labels = level_from_tree(tree, l)
+    T = T_from_level(level)
+    sim = np.nanmean(similarity_level(fcm, scm, level))
+    mod_sc = modularity(scm, T)
+    mod_fc = modularity(fcm, T)
+    x = pow((sim * mod_sc * mod_fc), (1 / 3))
+    return x
 
 def local_modularity(A, T):
     m = sum(A.flatten())

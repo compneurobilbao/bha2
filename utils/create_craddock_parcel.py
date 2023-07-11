@@ -6,7 +6,7 @@ import sys
 
 dim_scaler = int(sys.argv[1])
 participants = pd.read_csv(
-    os.path.join("/workspaces", "bha2", "data", "raw", "participants.tsv"), sep="\t"
+    os.path.join("/workspaces", "bha2", "utils", "participants.tsv"), sep="\t"
 )
 brain_lobules = [
     "Frontal",
@@ -17,7 +17,7 @@ brain_lobules = [
     "Subcortical",
 ]
 path_to_rest_prep = os.path.join(
-    "/workspaces", "bha2", "data", "processed", "rest_Prep_PCA_AROMA"
+    "/workspaces", "bha2", "data", "processed", "rest_prep"
 )
 path_to_parcellations = os.path.join(
     "/workspaces", "bha2", "data", "processed", "Craddock_parcellations"

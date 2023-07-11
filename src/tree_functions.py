@@ -27,7 +27,7 @@ def level_dictionary(T, lvl):
     return l_dict
 
 
-def tree_dictionary(init_level, end_level, W, tree_class="reduced"):
+def tree_dictionary(init_level, end_level, W, tree_class):
     t_dict = {}
     for i in range(init_level, end_level + 1):
         T = tree_modules(W, i)
