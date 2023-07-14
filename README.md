@@ -1,7 +1,9 @@
-# BRAIN HIERARCHICAL ATLAS 2 (BHA2)
+# Brain Hierarchical Atlas 2 (BHA2)
 
 Elucidating the intricate relationship between the structure and function of the brain, both in healthy and pathological conditions, is a key challenge for modern neuroscience. Magnetic Resonance Imaging (MRI) has helped in the understanding of this matter, with diffusion images providing information about structural connectivity (SC)
-and resting-state functional MRI revealing the functional connectivity (FC). Furthermore, the brain operates by discrete multiscale computations in both the time and spatial domains, in a way that is far from known [(Churchland and Sejnowski, The MIT Press, 1994)](https://mitpress.mit.edu/9780262531207/the-computational-brain/). To advance in the understanding of this puzzle, a dual structure-function hierarchical clustering strategy was proposed in [(Diez et. al, SciRep, 2015)](https://www.nature.com/articles/srep10532), providing a common skeleton shared by structure and function. Here, we further extend this approach by:
+and resting-state functional MRI revealing the functional connectivity (FC).
+
+Furthermore, the brain operates by discrete multiscale computations in both the time and spatial domains, in a way that is far from known [(Churchland and Sejnowski, The MIT Press, 1994)](https://mitpress.mit.edu/9780262531207/the-computational-brain/). To advance in the understanding of this puzzle, a dual structure-function hierarchical clustering strategy was proposed in [(Diez et. al, SciRep, 2015)](https://www.nature.com/articles/srep10532), providing a common skeleton shared by structure and function. Here, we further extend this approach by:
 1. Fine-tuning the amount of matching between SC and FC via a free-parameter $\gamma$. Specifically, when $\gamma$ is set to 0, SC is fully recovered, while when $\gamma$ is set to 1, FC is recovered. In between these extremes, a fusion scenario occurs, where both SC and FC contribute to the connectivity patterns.
 2. Making use of brain-transcriptomic data to shed light on biological interpretability of brain-related diseases in the $\gamma$-modulated multiscale structure-function correspondence.
 3. Providing to the scientific community open data of different scenarios of structure-function sharing and at different spatial scales, and open code to generate them in a MRI dataset.
@@ -10,7 +12,7 @@ An overview of the methodology is shown in the following figure:
 ![methods](docs/methods_overview.png)
 
 ## Citation
-Antonio Jimenez-Marin, Ibai Diez, Asier Erramuzpe, Sebastiano Stramaglia, Paolo Bonifazi, Jesus M Cortes. Datasets and code for studying the correspondence between structural and functional connectivity at different spatial resolutions and its relation to neurogenetics. biorxiv. 2023.
+*Antonio Jimenez-Marin, Ibai Diez, Asier Erramuzpe, Sebastiano Stramaglia, Paolo Bonifazi, Jesus M Cortes*. **Datasets and code for studying the correspondence between structural and functional connectivity at different spatial resolutions and its relation to neurogenetics**. biorxiv. 2023.
 
 ## Prerequisites
 ### Software
@@ -43,12 +45,12 @@ If you want to use your own data, maybe you want also to build again you own ini
 ```python
 python2.7 utils/create_craddock_parcel.py <volume_per_roi_desired>
 ```
-The input variable <volume_per_roi_desired> means that you will get ROIs with a size near that number. But, as the code is based on trying to reach some constrains, the final size could be different. Also, it is possible to get very small ROIS, so we have included an aditional code to correct both issues. To use it, you need to run the following commands:
+The input variable *<volume_per_roi_desired>* means that you will get ROIs with a size near that number. But, as the code is based on trying to reach some constrains, the final size could be different. Also, it is possible to get very small ROIS, so we have included an aditional code to correct both issues. To use it, you need to run the following commands:
 
 ```python
 python3 utils/correct_small_rois_craddock.py <volume_per_roi_desired> <min_volume_per_roi>
 ```
-For example if <volume_per_roi_desired> = 75 and <min_volume_per_roi> = 20, the code forces to have ROIs with a mean volume of 75 voxels and a minimum volume of 20 voxels.
+For example if *<volume_per_roi_desired>* = 75 and *<min_volume_per_roi>* = 20, the code forces to have ROIs with a mean volume of 75 voxels and a minimum volume of 20 voxels.
 
 Once you have your iPAs, you will have to build the SC and FC matrices. The FC matrices can be computed using the time-series of your preprocessed resting-state fMRI data as input, and for build the SC matrices you can use our code [compneuro-dwiproc](https://github.com/ajimenezmarin/compneuro-dwiproc)
 
@@ -59,11 +61,11 @@ Having the SC and FC matrices ready to use, you can run the code to generate the
 python3 src/build_tree.py <project_path> <conn_size> <tree_lower> <tree_upper> <tree_class>
 ```
 Where:
-* <project_path> is the path to the project folder.
-* <conn_size> is the number of ROIs of the iPA selected.
-* <tree_lower> is the lower bound of the tree.
-* <tree_upper> is the upper bound of the tree.
-* <tree_class> has two options:
+* *<project_path>* is the path to the project folder.
+* *<conn_size>* is the number of ROIs of the iPA selected.
+* *<tree_lower>* is the lower bound of the tree.
+* *<tree_upper>* is the upper bound of the tree.
+* *<tree_class>* has two options:
     - `full` define levels with all the modules included, e.g. level 3 will have 3 modules and level 4 will have 4 modules
     - `reduced` define levels with unique modules, i.e. level 4 will have two modules equal to the level 3 so them will not be included.
 
