@@ -33,7 +33,7 @@ else:
     np.save(os.path.join(project_path, "tmp", "n" + str(conn_size) + "_fcm.npy"), fcm)
     np.save(os.path.join(project_path, "tmp", "n" + str(conn_size) + "_scm.npy"), scm)
 
-# equal both connectomes and remove nodes disconnected from the network
+# Equal both connectome densities and remove the nodes disconnected from the network
 fcm_clean, scm_clean, fc_removed_rois, sc_removed_rois = equal_clean_connectomes(
     fcm, scm
 )

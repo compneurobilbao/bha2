@@ -3,11 +3,30 @@ from src.tree_functions import level_from_tree, T_from_level
 import numpy as np
 
 
-
 def connectome_average(fc_all, sc_all):
+    """
+    Compute the average connectivity matrices for a set of subjects.
+
+    Parameters
+    ----------
+    fc_all : ndarray, shape (N, M, M)
+        A set of functional connectivity matrices for N subjects.
+
+    sc_all : ndarray, shape (N, M, M)
+        A set of structural connectivity matrices for N subjects.
+
+    Returns
+    -------
+    fcm : ndarray, shape (M, M)
+        The average functional connectivity matrix.
+
+    scm : ndarray, shape (M, M)
+        The average structural connectivity matrix.
+    """
     fcm = np.median(fc_all, axis=0)
     scm = np.median(sc_all, axis=0)
     return fcm, scm
+
 
 def density_threshold(W, density):
     W_thr = np.zeros(W.shape)
@@ -15,12 +34,33 @@ def density_threshold(W, density):
     W_thr[np.where(abs(W) > W_sorted[int((1 - density) * len(W_sorted))])] = 1
     return W * W_thr
 
+
 def remove_rois_from_connectomes(rois, fcm, scm):
+    """
+    Remove rows and columns from a functional and structural connectome.
+
+    Parameters
+    ----------
+    rois : list
+        List of ROIs to remove from the connectomes.
+    fcm : ndarray
+        Functional connectivity matrix.
+    scm : ndarray
+        Structural connectivity matrix.
+
+    Returns
+    -------
+    fcm_rois_rem : ndarray
+        Functional connectivity matrix with ROIs removed.
+    scm_rois_rem : ndarray
+        Structural connectivity matrix with ROIs removed.
+    """
     fcm_rois_rem = np.delete(fcm, rois, axis=0)
     fcm_rois_rem = np.delete(fcm_rois_rem, rois, axis=1)
     scm_rois_rem = np.delete(scm, rois, axis=0)
     scm_rois_rem = np.delete(scm_rois_rem, rois, axis=1)
     return fcm_rois_rem, scm_rois_rem
+
 
 def equal_clean_connectomes(fcm, scm):
     zero_rows_sc = np.where(~scm.any(axis=1))[0]
@@ -35,6 +75,7 @@ def equal_clean_connectomes(fcm, scm):
     )
     return fcm_nonzero, scm_nonzero, zero_rows_fc, zero_rows_sc
 
+
 def matrix_fusion(g, fcb, scb):
     if g == 0.0:
         cc = scb
@@ -43,6 +84,7 @@ def matrix_fusion(g, fcb, scb):
     else:
         cc = (g * fcb) + ((1 - g) * scb)
     return cc
+
 
 def get_module_matrix(matrix, rois):
     module_matrix = matrix[rois, :][:, rois]
@@ -85,6 +127,7 @@ def modularity(A, T):
     Q = B[np.where((s.T - s) == 0)].sum() / m
     return Q
 
+
 def x_modularity(tree, l, fcm, scm):
     level, labels = level_from_tree(tree, l)
     T = T_from_level(level)
@@ -93,6 +136,7 @@ def x_modularity(tree, l, fcm, scm):
     mod_fc = modularity(fcm, T)
     x = pow((sim * mod_sc * mod_fc), (1 / 3))
     return x
+
 
 def local_modularity(A, T):
     m = sum(A.flatten())

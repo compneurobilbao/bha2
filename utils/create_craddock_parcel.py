@@ -4,7 +4,7 @@ import nibabel as nib
 import os
 import sys
 
-dim_scaler = int(sys.argv[1])
+volume_per_roi_desired = int(sys.argv[1])
 participants = pd.read_csv(
     os.path.join("/workspaces", "bha2", "utils", "participants.tsv"), sep="\t"
 )
@@ -67,14 +67,14 @@ for lob in brain_lobules:
     n_clusters = np.round(
         np.mean(lob_mask_crop.get_fdata().flatten())
         * np.prod(lob_mask_crop.shape)
-        / dim_scaler
+        / volume_per_roi_desired
     ).astype(int)
 
     for sub in participants.values[:, 0]:
         if not os.path.exists(os.path.join(path_to_parcellations, lob, sub)):
             os.mkdir(os.path.join(path_to_parcellations, lob, sub))
         os.system(
-            "python2.7 /workspaces/bha2/utils/craddockParcel/pyClusterROI_individual.py "
+            "python2.7 /workspaces/bha2/utils/pyClusterROI/pyClusterROI_individual.py "
             + path_to_rest_prep
             + " "
             + path_to_parcellations
@@ -85,7 +85,7 @@ for lob in brain_lobules:
         )
 
     os.system(
-        "python2.7 /workspaces/bha2/utils/craddockParcel/pyClusterROI_group_and_convertNII.py "
+        "python2.7 /workspaces/bha2/utils/pyClusterROI/pyClusterROI_group_and_convertNII.py "
         + path_to_parcellations
         + " "
         + os.path.join("/workspaces", "bha2", "data", "raw", "participants.tsv")
