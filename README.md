@@ -27,12 +27,10 @@ data
 │   ├───iPA_nROIS
 │   │   ├───iPA_nROIS.nii.gz
 │   │   ├───SC
-│   │   │   ├───det
-│   │   │   ├───prob
 │   │   ├───FC
 │   │   ├───ts
 │   │   |   ├───confounds
-│   │   ├───$\gamma$-trees
+│   │   ├───gamma-trees
 │   │   ├───transcriptomics.csv
 ```
 Where nROIS have nine possible values: 183, 391, 568, 729, 964, 1242, 1584, 1795 and 2165.
@@ -77,4 +75,4 @@ lvl_20_mod_5: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 ```
 
 ## Optimal parcellation description
-With the generated trees you can follow a multi-scale strategy to generate brain connectivity features at different scales, and an optimal strategy selecting the best parcellation which maximizes the correspondence between SC and FC. In this repo, we have included different python-based notebooks showing how to calculate it and describing the modules from different perspectives. From the anatomical and functional interpretation, to their neurobiological relevance in different brain related disorders. Additionally, in each of the notebooks we also generate the figures included in the paper.
+With the generated trees you can follow a multi-scale strategy to generate brain connectivity features at different scales, and an optimal strategy selecting the best parcellation which maximizes the correspondence between SC and FC. In this repo, we have included different python-based notebooks showing different situations describing the modules from different perspectives, from the anatomical and functional interpretation, to their neurobiological relevance in different brain related disorders. Additionally, in each of the notebooks we also generate the figures included in the paper.
