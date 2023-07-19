@@ -23,13 +23,14 @@ if os.path.exists(os.path.join(project_path, "tmp", "n" + str(conn_size) + "_fcm
     print("fcm and scm loaded from tmp folder")
 else:
     sc_group = load_data(
-        os.path.join(project_path, "data", "raw", "n" + str(conn_size), "sc")
+        os.path.join(project_path, "data", "iPA_" + str(conn_size), "sc")
     )
     fc_group = load_data(
-        os.path.join(project_path, "data", "raw", "n" + str(conn_size), "fc")
+        os.path.join(project_path, "data", "iPA_" + str(conn_size), "fc")
     )
     fcm, scm = connectome_average(fc_group, sc_group)
-    os.mkdir(os.path.join(project_path, "tmp"))
+    if not os.path.exists(os.path.join(project_path, "tmp")):
+        os.mkdir(os.path.join(project_path, "tmp"))
     np.save(os.path.join(project_path, "tmp", "n" + str(conn_size) + "_fcm.npy"), fcm)
     np.save(os.path.join(project_path, "tmp", "n" + str(conn_size) + "_scm.npy"), scm)
 
@@ -44,9 +45,13 @@ scm_bin = np.where(scm_clean > 0, 1, 0)
 
 # save again the initial parcellation based on the ROIs of the cleaned connectomes
 # Loading the original parcellation
-parcellation_name = "craddock_" + str(conn_size) + ".nii.gz"
 parcellation = nib.load(
-    os.path.join(project_path, "brain_templates", parcellation_name)
+    os.path.join(
+        project_path,
+        "data",
+        "iPA_" + str(conn_size),
+        "iPA_" + str(conn_size) + ".nii.gz",
+    )
 )
 parcellation_vol = parcellation.get_fdata()
 
@@ -68,18 +73,18 @@ parcellation_clean_img = nib.Nifti1Image(parcellation_clean, affine=parcellation
 
 if not (
     os.path.exists(
-        os.path.join(project_path, "data", "processed", "n" + str(conn_size))
+        os.path.join(project_path, "data", "iPA_" + str(conn_size), "processed")
     )
 ):
-    os.mkdir(os.path.join(project_path, "data", "processed", "n" + str(conn_size)))
+    os.mkdir(os.path.join(project_path, "data", "iPA_" + str(conn_size), "processed"))
 
 nib.save(
     parcellation_clean_img,
     os.path.join(
         project_path,
         "data",
+        "iPA_" + str(conn_size),
         "processed",
-        "n" + str(conn_size),
         "initial_parcellation.nii.gz",
     ),
 )
@@ -94,8 +99,8 @@ for g in np.arange(0, 1.1, 0.1):
             os.path.join(
                 project_path,
                 "data",
+                "iPA_" + str(conn_size),
                 "processed",
-                "n" + str(conn_size),
                 "tree_" + tree_class + "_g_" + str(round(g, 2)) + ".json",
             ),
             "w",

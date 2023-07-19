@@ -19,13 +19,12 @@ An overview of the methodology is shown in the following figure:
 All the code can be executed using a devcontainer. To build the image you need to install first [docker](https://docs.docker.com/engine/install/) and [VScode](https://code.visualstudio.com/download). Then, in *VScode* you can install the extension *Dev-Containers* and open the project in the container.
 
 ### Data
-The data used in this project is available in [FigShare](link/to/figshare). The data is organized in the following way:
+The data used in this project is available in [Zenodo](https://zenodo.org/record/8158914). The data is organized in the following way:
 ```
 data
-├───participants.tsv
-├───raw
 │   ├───iPA_nROIS
 │   │   ├───iPA_nROIS.nii.gz
+│   │   ├───iPA_nROIS.csv
 │   │   ├───SC
 │   │   ├───FC
 │   │   ├───ts
@@ -68,7 +67,7 @@ Where:
     - `reduced` define levels with unique modules, i.e. level 4 will have two modules equal to the level 3 so them will not be included.
 
 ## Outputs
-The outputs of the code are the $\gamma$-modulated multiscale structure-function trees as well as an iPA wich include only the ROIs that are connected in both connectomes, and they are stored in `bha2/data/processed/nROIS/`. The trees are saved in a *json* file including a dictionary with the ROIs grouped in each pair module-level. For example:
+The outputs of the code are the $\gamma$-modulated multiscale structure-function trees as well as an iPA wich include only the ROIs that are connected in both connectomes, and they are stored in `bha2/data/iPA_nROIS/processed/`. The trees are saved in a *json* file including a dictionary with the ROIs grouped in each pair module-level. For example:
 
 ```
 lvl_20_mod_5: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]

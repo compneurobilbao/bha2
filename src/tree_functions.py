@@ -58,3 +58,11 @@ def T_from_level(level):
     for idx, mod in enumerate(level):
         T[mod] = idx + 1
     return T
+
+
+def cut_tree(tree, lvl_inf, lvl_sup):
+    cutted_tree = {}
+    for lvl in range(lvl_inf, lvl_sup + 1):
+        levels, labels = level_from_tree(tree, lvl)
+        cutted_tree.update(dict(zip(labels, levels)))
+    return cutted_tree
