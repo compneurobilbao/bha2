@@ -120,7 +120,7 @@ volume_per_roi_desired = int(sys.argv[1])
 min_volume_per_roi = int(sys.argv[2])
 
 
-LOBE_PARTITION_PATH = "/workspaces/bha2/data/processed/Craddock_parcellations"
+LOBE_PARTITION_PATH = "/workspaces/bha2/data/processed/pyClusterROI_parcellations"
 brain_areas = ["Frontal", "Parietal", "Occipital", "Temporal", "Insula", "Subcortical"]
 template_empty = np.zeros(
     nib.load(
@@ -151,8 +151,10 @@ nib.save(
     os.path.join(
         "/workspaces",
         "bha2",
-        "brain_templates",
-        "craddock_" + str(FINAL_ROI_LABEL_COUNTER - 1) + ".nii.gz",
+        "data",
+        "processed",
+        "pyClusterROI_parcellations",
+        "iPA_" + str(FINAL_ROI_LABEL_COUNTER - 1) + ".nii.gz",
     ),
 )
 
@@ -164,7 +166,9 @@ atlas_coords.to_csv(
     os.path.join(
         "/workspaces",
         "bha2",
-        "brain_templates",
-        "craddock_" + str(FINAL_ROI_LABEL_COUNTER - 1) + "_rois.csv",
+        "data",
+        "processed",
+        "pyClusterROI_parcellations",
+        "iPA_" + str(FINAL_ROI_LABEL_COUNTER - 1) + ".csv",
     )
 )

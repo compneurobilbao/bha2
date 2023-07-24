@@ -37,15 +37,15 @@ Where nROIS have nine possible values: 183, 391, 568, 729, 964, 1242, 1584, 1795
 Needless to say, you can use your own data if you have available *dwi* and *resting-state fMRI* sequences.
 
 ## Getting started
-If you want to use your own data, maybe you want also to build again you own initial parcellations (iPAs). To do so, you first need to preprocess your resting-state fMRI data. For that, you can use our preprocessing pipeline [compneuro-fmriproc](https://github.com/ajimenezmarin/compneuro-fmriproc), also the well know [fMRIPrep](https://fmriprep.org/en/stable/) or your own code. After that, we have include in the repo a code based on [pyClusterROI](https://ccraddock.github.io/cluster_roi/) for creating a ROI based parcellation with a unsupervised voxel-level clustering analysis which delineates a specific number of regions. For using it, you need to run the following command:
+If you want to use your own data, maybe you want also to build again you own initial parcellations (iPAs). To do so, you first need to preprocess your resting-state fMRI data. For that, you can use our preprocessing pipeline [compneuro-fmriproc](https://github.com/ajimenezmarin/compneuro-fmriproc), also the well know [fMRIPrep](https://fmriprep.org/en/stable/) or your own code. After that, we have included in the repo a code based on [pyClusterROI](https://ccraddock.github.io/cluster_roi/) for creating a ROI based parcellation with a unsupervised voxel-level clustering analysis which delineates a specific number of regions. For using it, first you have to locate the rs-fMRI preprocessed images of the participants included in `participants.tsv` file in the folders `data/processed/rest_prep/sub-XXX`. The name of the individual images has to be `sub-XXX_preprocessed.nii.gz`. After that, you have to run the following command:
 
 ```python
-python2.7 utils/create_craddock_parcel.py <volume_per_roi_desired>
+python2.7 utils/create_pyClusterROI_parcel.py <volume_per_roi_desired>
 ```
 The input variable *<volume_per_roi_desired>* means that you will get ROIs with a size near that number. But, as the code is based on trying to reach some constrains, the final size could be different. Also, it is possible to get very small ROIS, so we have included an aditional code to correct both issues. To use it, you need to run the following commands:
 
 ```python
-python3 utils/correct_small_rois_craddock.py <volume_per_roi_desired> <min_volume_per_roi>
+python3 utils/correct_small_rois_pyClusterROI.py <volume_per_roi_desired> <min_volume_per_roi>
 ```
 For example if *<volume_per_roi_desired>* = 75 and *<min_volume_per_roi>* = 20, the code forces to have ROIs with a mean volume of 75 voxels and a minimum volume of 20 voxels.
 
