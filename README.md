@@ -12,7 +12,7 @@ An overview of the methodology is shown in the following figure:
 ![methods](docs/methods_overview.png)
 
 ## Citation
-*Antonio Jimenez-Marin, Ibai Diez, Asier Erramuzpe, Sebastiano Stramaglia, Paolo Bonifazi, Jesus M Cortes*. **Datasets and code for studying the correspondence between structural and functional connectivity at different spatial resolutions and its relation to neurogenetics**. biorxiv. 2023.
+*Antonio Jimenez-Marin, Ibai Diez, Asier Erramuzpe, Sebastiano Stramaglia, Paolo Bonifazi, Jesus M Cortes*. **Open datasets and code for multi-scale relations on structure, function and neuro-genetics in the human brain**. biorxiv. 2023. https://doi.org/10.1101/2023.08.04.551953
 
 ## Prerequisites
 ### Software
