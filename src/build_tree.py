@@ -1,4 +1,4 @@
-"""Build dendrogram trees for a given neuroimaging dataset which includes
+"""Conde for building dendrogram trees for a given neuroimaging dataset which includes
 Structural Connectivity (SC) and Functional Connectivity (FC) matrices."""
 
 from src.tree_functions import *
@@ -9,14 +9,14 @@ import sys
 import json
 import nibabel as nib
 
-# input variables
+# Input variables
 project_path = sys.argv[1]
 conn_size = int(sys.argv[2])
 tree_lower = int(sys.argv[3])
 tree_upper = int(sys.argv[4])
 tree_class = sys.argv[5]
 
-# check if fcm and scm are stored in tmp folder
+# Checking if fcm and scm are stored in tmp folder
 if os.path.exists(os.path.join(project_path, "tmp", "n" + str(conn_size) + "_fcm.npy")):
     fcm = np.load(os.path.join(project_path, "tmp", "n" + str(conn_size) + "_fcm.npy"))
     scm = np.load(os.path.join(project_path, "tmp", "n" + str(conn_size) + "_scm.npy"))
@@ -34,16 +34,16 @@ else:
     np.save(os.path.join(project_path, "tmp", "n" + str(conn_size) + "_fcm.npy"), fcm)
     np.save(os.path.join(project_path, "tmp", "n" + str(conn_size) + "_scm.npy"), scm)
 
-# Equal both connectome densities and remove the nodes disconnected from the network
+# Equalizing both connectome densities and removing the nodes disconnected from the network
 fcm_clean, scm_clean, fc_removed_rois, sc_removed_rois = equal_clean_connectomes(
     fcm, scm
 )
 
-# binzarize both connectomes for building the tree
+# Binzarizing both connectomes for building the tree
 fcm_bin = np.where(abs(fcm_clean) > 0, 1, 0)
 scm_bin = np.where(scm_clean > 0, 1, 0)
 
-# save again the initial parcellation based on the ROIs of the cleaned connectomes
+
 # Loading the original parcellation
 parcellation = nib.load(
     os.path.join(
@@ -55,7 +55,7 @@ parcellation = nib.load(
 )
 parcellation_vol = parcellation.get_fdata()
 
-# Empty matrix to store the parcellation without the rows removed
+# Defining an empty matrix to store the parcellation without the rows removed
 parcellation_clean = np.zeros(
     (parcellation_vol.shape[0], parcellation_vol.shape[1], parcellation_vol.shape[2])
 )
@@ -89,7 +89,7 @@ nib.save(
     ),
 )
 
-# build the tree
+# Building the tree
 for g in np.arange(0, 1.1, 0.1):
     W = matrix_fusion(g, fcm_bin, scm_bin)
     t_dict = tree_dictionary(tree_lower, tree_upper, W, tree_class)

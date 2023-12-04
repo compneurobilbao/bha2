@@ -1,3 +1,5 @@
+"""Definintion of functions related to connectomes and connectivity measures."""
+
 from scipy.spatial.distance import pdist, squareform
 from src.tree_functions import level_from_tree, T_from_level
 import numpy as np
@@ -29,6 +31,21 @@ def connectome_average(fc_all, sc_all):
 
 
 def density_threshold(W, density):
+    """
+    Apply density thresholding to a given matrix.
+
+    Parameters:
+    ----------
+    W : ndarray, shape (M, M)
+        Matrix to threshold.
+    density : float
+        Density threshold value between 0 and 1.
+
+    Returns:
+    -------
+    ndarray
+        Thresholded matrix.
+    """
     W_thr = np.zeros(W.shape)
     W_sorted = np.sort(abs(W.flatten()))
     W_thr[np.where(abs(W) > W_sorted[int((1 - density) * len(W_sorted))])] = 1
@@ -43,16 +60,16 @@ def remove_rois_from_connectomes(rois, fcm, scm):
     ----------
     rois : list
         List of ROIs to remove from the connectomes.
-    fcm : ndarray
+    fcm : ndarray, shape (M, M)
         Functional connectivity matrix.
-    scm : ndarray
+    scm : ndarray, shape (M, M)
         Structural connectivity matrix.
 
     Returns
     -------
-    fcm_rois_rem : ndarray
+    fcm_rois_rem : ndarray, shape (M-rois, M-rois)
         Functional connectivity matrix with ROIs removed.
-    scm_rois_rem : ndarray
+    scm_rois_rem : ndarray, shape (M-rois, M-rois)
         Structural connectivity matrix with ROIs removed.
     """
     fcm_rois_rem = np.delete(fcm, rois, axis=0)
@@ -63,6 +80,27 @@ def remove_rois_from_connectomes(rois, fcm, scm):
 
 
 def equal_clean_connectomes(fcm, scm):
+    """
+    Remove zero rows from SCM and FCM, and threshold FCM to match density of SCM
+    
+    Parameters
+    ----------
+    fcm : ndarray
+        Functional connectivity matrix
+    scm : ndarray
+        Structural connectivity matrix
+
+    Returns
+    -------
+    fcm_nonzero: ndarray
+        Functional connectivity matrix with zero rows removed.
+    scm_nonzero: ndarray
+        Structural connectivity matrix with zero rows removed.
+    zero_rows_fc: ndarray
+        The indices of the zero rows in the original fcm.
+    zero_rows_sc: ndarray
+        The indices of the zero rows in the original scm.
+    """
     zero_rows_sc = np.where(~scm.any(axis=1))[0]
     fcm_nonzero, scm_nonzero = remove_rois_from_connectomes(zero_rows_sc, fcm, scm)
     scm_density = np.where(scm_nonzero.flatten() > 0, 1, 0).sum(dtype=float) / (
@@ -76,7 +114,26 @@ def equal_clean_connectomes(fcm, scm):
     return fcm_nonzero, scm_nonzero, zero_rows_fc, zero_rows_sc
 
 
+
 def matrix_fusion(g, fcb, scb):
+    """
+    Perform matrix fusion based on the given parameters.
+
+    Parameters
+    ----------
+    g : float
+        The fusion parameter, ranging from 0.0 to 1.0.
+    fcb : ndarray, shape (M,M)
+        The first connectivity matrix.
+    scb : ndarray, shape (M,M)
+        The second connectivity matrix.
+
+    Returns
+    -------
+    cc : ndarray
+        The fused connectivity matrix.
+
+    """
     if g == 0.0:
         cc = scb
     elif g == 1.0:
@@ -87,17 +144,66 @@ def matrix_fusion(g, fcb, scb):
 
 
 def get_module_matrix(matrix, rois):
+    """
+    Returns a module matrix based on the given matrix and regions of interest (ROIs).
+
+    Parameters:
+    ----------
+    matrix : ndarray
+        The input matrix.
+    rois : list
+        The list of regions of interest.
+
+    Returns:
+    -------
+    module_matrix: ndarray
+        The module matrix.
+
+    """
     module_matrix = matrix[rois, :][:, rois]
     return module_matrix
 
 
 def get_module_matrix_external(matrix, rois):
+    """
+    Get the module matrix for external regions (regions not included in rois list).
+
+    Parameters:
+    ----------
+    matrix : ndarray
+        The input matrix.
+    rois : list
+        The list of regions of interest.
+
+    Returns:
+    -------
+    module_matrix : ndarray
+        The external connectivity of the module.
+
+    """
     ext_rois = np.setdiff1d(np.array([i for i in range(len(matrix))]), rois)
     module_matrix = matrix[rois][:, ext_rois]
     return module_matrix
 
 
 def similarity_level(fcm, scm, level):
+    """
+    Calculate the similarity level between two connectivity matrices for a given level.
+
+    Parameters:
+    ----------
+    fcm : ndarray, shape (M, M)
+        Functional connectivity matrix.
+    scm : ndarray, shape (M, M)
+        Structural connectivity matrix.
+    level : dictionary
+        A dictionary containing the ROIs included in every module for a given level.
+
+    Returns:
+    -------
+    similarities: list
+        A list of similarity values for each ROI in the given level.
+    """
     similarities = []
     for rois in level:
         if len(rois) > 1:
@@ -119,6 +225,20 @@ def similarity_level(fcm, scm, level):
 
 
 def modularity(A, T):
+    """
+    Calculate the Newmann modularity of a network given the adjacency matrix 
+    A and the community assignment vector T.
+
+    Parameters:
+    A : ndarray, shape(M,M) 
+        Adjacency matrix of the network.
+    T : ndarray, shape(1,M) 
+        Community assignment vector.
+
+    Returns:
+    Q : float
+        Modularity value of the network.
+    """
     N = len(T)
     K = np.array(A.sum(axis=0).reshape(1, -1), dtype=np.float64)
     m = K.sum()
@@ -129,6 +249,26 @@ def modularity(A, T):
 
 
 def x_modularity(tree, l, fcm, scm):
+    """
+    Calculate the cross-modularity between structure and function of a level of the tree
+
+    Parameters:
+    ----------
+    tree : dictionary
+        The tree dictionary representing the hierarchical clustering.
+    l : int
+        The level at which to calculate the x-modularity.
+    fcm : ndarray, shape (M, M)
+        Functional connectivity matrix.
+    scm : ndarray, shape (M, M)
+        Structural connectivity matrix.
+
+    Returns:
+    -------
+    x: float
+        The cross-modularity value.
+
+    """
     level, labels = level_from_tree(tree, l)
     T = T_from_level(level)
     sim = np.nanmean(similarity_level(fcm, scm, level))
@@ -136,13 +276,3 @@ def x_modularity(tree, l, fcm, scm):
     mod_fc = modularity(fcm, T)
     x = pow((sim * mod_sc * mod_fc), (1 / 3))
     return x
-
-
-def local_modularity(A, T):
-    m = sum(A.flatten())
-    ext_T = np.setdiff1d(np.array([i for i in range(len(A))]), T)
-    mc = A[T][:, T]
-    mc_m = sum(mc.flatten()) / m
-    ec = A[T][:, ext_T]
-    Q_m = mc_m - np.power((2 * sum(mc.flatten()) + sum(ec.flatten())) / (2 * m), 2)
-    return Q_m
