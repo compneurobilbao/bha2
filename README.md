@@ -40,7 +40,7 @@ Needless to say, you can use your own data if you have available *dwi* and *rest
 If you want to use your own data, maybe you want also to build again you own initial parcellations (iPAs). To do so, you first need to preprocess your resting-state fMRI data. For that, you can use our preprocessing pipeline [compneuro-fmriproc](https://github.com/ajimenezmarin/compneuro-fmriproc), also the well know [fMRIPrep](https://fmriprep.org/en/stable/) or your own code. After that, we have included in the repo a code based on [pyClusterROI](https://ccraddock.github.io/cluster_roi/) for creating a ROI based parcellation with a unsupervised voxel-level clustering analysis which delineates a specific number of regions. For using it, first you have to locate the rs-fMRI preprocessed images of the participants included in `participants.tsv` file in the folders `data/processed/rest_prep/sub-XXX`. The name of the individual images has to be `sub-XXX_preprocessed.nii.gz`. After that, you have to run the following command:
 
 ```python
-python2.7 utils/create_pyClusterROI_parcel.py <volume_per_roi_desired>
+python3 utils/create_pyClusterROI_parcel.py <volume_per_roi_desired>
 ```
 The input variable *<volume_per_roi_desired>* means that you will get ROIs with a size near that number. But, as the code is based on trying to reach some constrains, the final size could be different. Also, it is possible to get very small ROIS, so we have included an aditional code to correct both issues. To use it, you need to run the following commands:
 
@@ -51,7 +51,7 @@ For example if *<volume_per_roi_desired>* = 75 and *<min_volume_per_roi>* = 20, 
 
 Once you have your iPAs, you will have to build the SC and FC matrices. The FC matrices can be computed using the time-series of your preprocessed resting-state fMRI data as input, and for build the SC matrices you can use our code [compneuro-dwiproc](https://github.com/ajimenezmarin/compneuro-dwiproc)
 
-### Usage
+## Usage
 Having the SC and FC matrices ready to use, you can run the code to generate the $\gamma$-modulated multiscale structure-function trees. For that, you need to run the following command:
 
 ```python
@@ -65,6 +65,8 @@ Where:
 * *<tree_class>* has two options:
     - `full` define levels with all the modules included, e.g. level 3 will have 3 modules and level 4 will have 4 modules
     - `reduced` define levels with unique modules, i.e. level 4 will have two modules equal to the level 3 so them will not be included.
+
+By default, all the sc/fc connectomes included in the data folder will be loaded. If you want to use only a subset of participants paired by sex, you have to change the function `load_data` to `load_data_sex_paired` in the `build_tree.py` file and in the notebooks `01-calc_optimal_parcellation_figS1.ipynb`, `02-g_modulated_graph_node_strength_fig2.ipynb`, `03-hierarchical_parcellation_metrics_figS2_figS3.ipynb`.
 
 ## Outputs
 The outputs of the code are the $\gamma$-modulated multiscale structure-function trees as well as an iPA wich include only the ROIs that are connected in both connectomes, and they are stored in `bha2/data/iPA_nROIS/processed/`. The trees are saved in a *json* file including a dictionary with the ROIs grouped in each pair module-level. For example:
