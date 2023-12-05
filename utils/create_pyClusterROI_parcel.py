@@ -75,7 +75,7 @@ for lob in brain_lobules:
         if not os.path.exists(os.path.join(path_to_parcellations, lob, sub)):
             os.mkdir(os.path.join(path_to_parcellations, lob, sub))
         os.system(
-            "python2.7 /workspaces/bha2/utils/pyClusterROI/pyClusterROI_individual.py "
+            "python3 /workspaces/bha2/utils/pyClusterROI/pyClusterROI_individual.py "
             + path_to_rest_prep
             + " "
             + path_to_parcellations
@@ -86,7 +86,7 @@ for lob in brain_lobules:
         )
 
     os.system(
-        "python2.7 /workspaces/bha2/utils/pyClusterROI/pyClusterROI_group_and_convertNII.py "
+        "python3 /workspaces/bha2/utils/pyClusterROI/pyClusterROI_group_and_convertNII.py "
         + path_to_parcellations
         + " "
         + os.path.join("/workspaces", "bha2", "data", "participants.tsv")
