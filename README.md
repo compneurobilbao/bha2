@@ -34,7 +34,8 @@ data
 ```
 Where nROIS have nine possible values: 183, 391, 568, 729, 964, 1242, 1584, 1795 and 2165.
 
-Needless to say, you can use your own data if you have available *dwi* and *resting-state fMRI* sequences.
+Needless to say, you can use your own data if you have available *dwi* and *resting-state fMRI* sequences. The only requirement is that the data has to be organized in the same way as the data included in the repo. For example if you want to use the Schaefer1000 parcellation, you have to create a folder `data/processed/iPA_n1000/` including the SC and FC matrices.
+
 
 ## Getting started
 If you want to use your own data, maybe you want also to build again you own initial parcellations (iPAs). To do so, you first need to preprocess your resting-state fMRI data. For that, you can use our preprocessing pipeline [compneuro-fmriproc](https://github.com/ajimenezmarin/compneuro-fmriproc), also the well know [fMRIPrep](https://fmriprep.org/en/stable/) or your own code. After that, we have included in the repo a code based on [pyClusterROI](https://ccraddock.github.io/cluster_roi/) for creating a ROI based parcellation with a unsupervised voxel-level clustering analysis which delineates a specific number of regions. For using it, first you have to locate the rs-fMRI preprocessed images of the participants included in `participants.tsv` file in the folders `data/processed/rest_prep/sub-XXX`. The name of the individual images has to be `sub-XXX_preprocessed.nii.gz`. After that, you have to run the following command:
