@@ -67,6 +67,13 @@ Where:
     - `full` define levels with all the modules included, e.g. level 3 will have 3 modules and level 4 will have 4 modules
     - `reduced` define levels with unique modules, i.e. level 4 will have two modules equal to the level 3 so them will not be included.
 
+If you do not want to build your own tree and you want to use the ones provided in [Zenodo](https://zenodo.org/record/8158914), you have to run the following command in order to remove the disconnected ROIs from the iPA:
+
+```python
+python3 src/fix_ipa_rois.py <project_path> <conn_size>
+```
+
+### Sex considerations
 By default, all the sc/fc connectomes included in the data folder will be loaded. If you want to use only a subset of participants paired by sex, you have to change the function `load_data` to `load_data_sex_paired` in the `build_tree.py` file and in the notebooks `01-calc_optimal_parcellation_figS1.ipynb`, `02-g_modulated_graph_node_strength_fig2.ipynb`, `03-hierarchical_parcellation_metrics_figS2_figS3.ipynb`.
 
 ## Outputs

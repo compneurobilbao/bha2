@@ -12,7 +12,6 @@
             "extensions": [
                 "EditorConfig.EditorConfig",
                 "ms-python.python",
-                "ms-python.vscode-pylance",
                 "ms-toolsai.jupyter",
                 "ms-python.black-formatter"
             ],
